@@ -54,7 +54,7 @@ export default function AuthPage() {
     <div
       className="min-h-screen flex flex-col items-center justify-center bg-cover bg-center bg-no-repeat"
       style={{
-        backgroundImage: "url('/s.jpg')", 
+        backgroundImage: "url('/s.jpg')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
@@ -62,24 +62,9 @@ export default function AuthPage() {
         height: "100vh",
       }}
     >
-      {/* Navbar */}
-      <nav className="w-full bg-white shadow-md flex justify-between items-center px-6 py-4 fixed top-0 z-10">
-        <Link href="/">
-          <span className="text-xl font-bold text-[#00BCD4] cursor-pointer">MediLink</span>
-        </Link>
-        <div className="flex space-x-6">
-          <Link href="/" className="text-gray-700 hover:text-gray-900 text-lg">Home</Link>
-          <Link href="/about" className="text-gray-700 hover:text-gray-900 text-lg">About</Link>
-          <Link href="/chat" className="text-gray-700 hover:text-gray-900 text-lg">Chat.io</Link>
-        </div>
-        <Link href="/profile">
-          <span className="text-xl text-gray-700 cursor-pointer">👤</span>
-        </Link>
-      </nav>
-
       {/* Form Container */}
       <div className="bg-white p-8 shadow-lg rounded-lg w-full max-w-md flex flex-col items-center">
-        
+
         {/* Toggle Switch */}
         <div className="flex justify-between mb-6 w-full bg-gray-200 rounded-full p-1 relative">
           <div
@@ -130,7 +115,7 @@ export default function AuthPage() {
                   }`}
                   onClick={() => setUserType("Physician")}
                 >
-                  Physician
+                  Doctor
                 </button>
               </div>
 

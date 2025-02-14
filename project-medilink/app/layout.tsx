@@ -20,7 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         
-        {/* ✅ Global Navigation Bar */}
+        {/* Global Navigation Bar */}
         <nav className="w-full bg-white shadow-md flex justify-between items-center px-6 py-4 fixed top-0 z-50">
           
           {/* Logo (Home Button) */}
@@ -30,9 +30,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
           {/* Navigation Links */}
           <div className="flex space-x-6">
-            <Link href="/" className="text-gray-700 hover:text-gray-900 text-lg">Home</Link>
-            <Link href="/about" className="text-gray-700 hover:text-gray-900 text-lg">About</Link>
-            <Link href="/chat" className="text-gray-700 hover:text-gray-900 text-lg">Chat.io</Link>
+            <Link href="/" className="nav-link">
+              Home
+            </Link>
+            <Link href="/about" className="nav-link">
+              About
+            </Link>
+            <Link href="/chat" className="nav-link">
+              Chat.io
+            </Link>
           </div>
 
           {/* Profile Icon (Navigates to Profile Page) */}
@@ -41,14 +47,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </Link>
         </nav>
 
-        {/* ✅ Apply Background Image Globally */}
-        <div className="min-h-screen bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/s.jpg')" }}>
-          <div className="min-h-screen bg-black/40 flex items-center justify-center">  
+          <div className="min-h-screen bg-black/40 flex items-center justify-center">
             {/* Adds a dark overlay for better contrast */}
             {children}
           </div>
-        </div>
-
       </body>
     </html>
   );

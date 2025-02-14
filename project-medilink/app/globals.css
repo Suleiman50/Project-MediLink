@@ -3,16 +3,31 @@
 @tailwind utilities;
 
 :root {
-  --primary-color: #00BCD4; 
+  --primary-color: #00BCD4;
 }
+/*noinspection CssInvalidUrlReference*/
 
+/* This line is red but yet the program works (weird) */
 body {
-  background-image: url("/s.jpg"); 
+  background-image: url("/s.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   background-attachment: fixed;
 }
+
+.nav-link {
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.05rem;
+  color: #000000;
+  transition: color 0.2s ease-in-out;
+}
+
+.nav-link:hover {
+  color: #0ee3e3;
+}
+
 .auth-container {
   background: none; 
   box-shadow: none; 
