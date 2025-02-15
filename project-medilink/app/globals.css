@@ -8,7 +8,6 @@
 /*noinspection CssInvalidUrlReference*/
 
 /* This line is red but yet the program works (weird) */
-
 body {
   background-image: url("/s.jpg");
   background-size: cover;

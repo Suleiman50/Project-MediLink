@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -40,7 +41,6 @@ export default function ProfilePage() {
   return (
       <div
           className="min-h-screen flex flex-col items-center bg-cover bg-center relative px-4"
-          style={{ backgroundImage: "url('/background.png')" }}
       >
         {/* Navbar */}
         <nav className="w-full bg-white shadow-md flex justify-between items-center px-6 py-4 fixed top-0 left-0 right-0 z-50">
@@ -54,26 +54,16 @@ export default function ProfilePage() {
               onClick={() => router.push("/")}
           />
 
-          {/* Center: Navigation Links */}
-          <div className="flex space-x-6">
-            <button
-                className="text-gray-700 text-lg font-semibold hover:text-[#00BCD4] transition-all"
-                onClick={() => router.push("/")}
-            >
+          <div className="flex space-x-8">
+            <Link href="/" className="nav-link">
               Home
-            </button>
-            <button
-                className="text-gray-700 text-lg font-semibold hover:text-[#00BCD4] transition-all"
-                onClick={() => router.push("/about")}
-            >
+            </Link>
+            <Link href="/about" className="nav-link">
               About
-            </button>
-            <button
-                className="text-gray-700 text-lg font-semibold hover:text-[#00BCD4] transition-all"
-                onClick={() => router.push("/chat")}
-            >
-              Chat.io
-            </button>
+            </Link>
+            <Link href="/chat" className="nav-link">
+              Chat
+            </Link>
           </div>
 
           {/* Right: Profile + Sign Out Button */}
