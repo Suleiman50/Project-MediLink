@@ -26,7 +26,13 @@ async function sendVerificationEmail(email: string, verificationToken: string) {
 
   await transporter.sendMail(mailOptions);
 }
-
+const validatePasswordStrength = (password: string) => {
+  if (password.length < 6) return "Password must be at least 6 characters long.";
+  if (!/[A-Z]/.test(password)) return "Password must contain at least one uppercase letter.";
+  if (!/[0-9]/.test(password)) return "Password must contain at least one number.";
+  if (!/[!@#$%^&*]/.test(password)) return "Password must contain at least one special character (!@#$%^&*).";
+  return null; // Valid password
+};
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -44,7 +50,12 @@ export async function POST(request: Request) {
         }
       );
     }
-
+    const passwordError = validatePasswordStrength(body.password); if (passwordError) {
+      return new Response(JSON.stringify({ error: passwordError }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
     // 2. Convert DD/MM/YYYY format to a Date object
     const [day, month, year] = body.dob.split('/');
     const formattedDOB = new Date(`${year}-${month}-${day}`);

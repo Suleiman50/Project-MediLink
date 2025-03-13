@@ -19,9 +19,39 @@ export default function AuthPage() {
 
   const [errorMessage, setErrorMessage] = useState(""); // NEW: store error message
   const router = useRouter();
+  const [passwordStrength, setPasswordStrength] = useState("");
+  const [passwordHint, setPasswordHint] = useState("");
+
+  const evaluatePasswordStrength = (password: string) => {
+    let strength = "";
+    let hint = "";
+
+    if (password.length < 6) {
+      strength = "Weak";
+      hint = "Use at least 6 characters.";
+    } else if (
+      !/[A-Z]/.test(password) ||
+      !/[0-9]/.test(password) ||
+      !/[!@#$%^&*]/.test(password)
+    ) {
+      strength = "Medium";
+      hint = "Add an uppercase letter, number, and symbol (!@#$%^&*).";
+    } else {
+      strength = "Strong";
+      hint = "Great! Your password is strong.";
+    }
+
+    setPasswordStrength(strength);
+    setPasswordHint(hint);
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+
+    if (!isLogin && name === "password") {
+      evaluatePasswordStrength(value);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -226,6 +256,38 @@ export default function AuthPage() {
             onChange={handleChange}
             required
           />
+
+          {/* Password Strength Indicator - Only in Sign-Up */}
+          {!isLogin && formData.password && (
+            <div className="mt-1">
+              <div
+                className={`text-sm font-semibold ${
+                  passwordStrength === "Weak"
+                    ? "text-red-500"
+                    : passwordStrength === "Medium"
+                    ? "text-yellow-500"
+                    : "text-green-500"
+                }`}
+              >
+                {passwordStrength} {passwordHint && `- ${passwordHint}`}
+              </div>
+
+              {/* Strength Meter */}
+              <div className="h-1 w-full bg-gray-300 mt-1 rounded">
+                <div
+                  className={`h-1 rounded transition-all duration-300 ${
+                    passwordStrength === "Strong"
+                      ? "bg-green-500 w-full"
+                      : passwordStrength === "Medium"
+                      ? "bg-yellow-500 w-2/3"
+                      : passwordStrength === "Weak"
+                      ? "bg-red-500 w-1/3"
+                      : "bg-gray-300 w-0"
+                  }`}
+                ></div>
+              </div>
+            </div>
+          )}
 
           {!isLogin && (
             <input
