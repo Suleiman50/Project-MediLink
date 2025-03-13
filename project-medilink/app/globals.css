@@ -32,3 +32,21 @@ body {
   background: none; 
   box-shadow: none; 
 }
+@keyframes ecg-move {
+  0% { stroke-dashoffset: 100; }
+  50% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: -100; }
+}
+
+@keyframes ecg-spike {
+  0%, 40% { transform: translateX(1); }
+  50% { transform: translateX(2px) scaleY(2); }
+  60% { transform: translateX(4px) scaleY(1); }
+  100% { transform: translateX(0); }
+}
+
+.animate-ecg {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: ecg-move 3.4s linear infinite, ecg-spike 3.4s ease-in-out infinite;
+}

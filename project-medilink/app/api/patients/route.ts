@@ -5,16 +5,14 @@ import nodemailer from 'nodemailer';
 
 // Function to send a verification email using Nodemailer
 async function sendVerificationEmail(email: string, verificationToken: string) {
-  // Create a transporter with your email credentials
   const transporter = nodemailer.createTransport({
-    service: 'Gmail', // Change if you're using a different email service
+    service: 'Gmail',
     auth: {
-      user: process.env.EMAIL_USER, // defined in your .env
-      pass: process.env.EMAIL_PASS, // defined in your .env (use an app password for Gmail)
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
     },
   });
 
-  // Build the verification URL (update with your actual domain)
   const verificationUrl = `http://localhost:3000/api/auth/verify-email?token=${verificationToken}`;
 
   const mailOptions = {
@@ -33,17 +31,31 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    // Convert DD/MM/YYYY format to a Date object
+    // 1. Check if this email already exists in the Patient table
+    const existingPatient = await prisma.patient.findUnique({
+      where: { email: body.email },
+    });
+    if (existingPatient) {
+      return new Response(
+        JSON.stringify({ error: "User already exists" }),
+        {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    // 2. Convert DD/MM/YYYY format to a Date object
     const [day, month, year] = body.dob.split('/');
     const formattedDOB = new Date(`${year}-${month}-${day}`);
 
-    // Hash the password before storing it
+    // 3. Hash the password
     const hashedPassword = await bcrypt.hash(body.password, 10);
 
-    // Generate a verification token
+    // 4. Generate a verification token
     const verificationToken = crypto.randomBytes(32).toString('hex');
 
-    // Create a new patient account with verified set to false
+    // 5. Create a new patient record
     const newPatient = await prisma.patient.create({
       data: {
         first_name: body.firstName,
@@ -56,11 +68,11 @@ export async function POST(request: Request) {
         weight: body.weight,
         bloodType: body.bloodType,
         verified: false,
-        verificationToken: verificationToken,
+        verificationToken,
       },
     });
 
-    // Send a verification email to the new patient
+    // 6. Send a verification email
     await sendVerificationEmail(body.email, verificationToken);
 
     return new Response(

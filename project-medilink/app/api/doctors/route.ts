@@ -2,10 +2,22 @@ import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
+import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+
+    // Check if a doctor with this email already exists
+    const existingDoctor = await prisma.doctor.findUnique({
+      where: { email: body.email },
+    });
+    if (existingDoctor) {
+      return new NextResponse(
+        JSON.stringify({ error: "User already exists" }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Convert DD/MM/YYYY format to a Date for Prisma
     const [day, month, year] = body.dob.split('/');
@@ -35,16 +47,13 @@ export async function POST(request: Request) {
     // Send a verification email to the created account
     await sendVerificationEmail(body.email, verificationToken);
 
-    return new Response(
+    return new NextResponse(
       JSON.stringify({ message: "Doctor account created. A verification email has been sent." }),
-      {
-        status: 201,
-        headers: { 'Content-Type': 'application/json' },
-      }
+      { status: 201, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (error: any) {
     console.error('Error creating doctor:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new NextResponse(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
@@ -53,19 +62,16 @@ export async function POST(request: Request) {
 
 // Function to send a verification email using Nodemailer
 async function sendVerificationEmail(email: string, verificationToken: string) {
-  // Create a transporter using your SMTP settings
   const transporter = nodemailer.createTransport({
-    service: 'Gmail', // or use another service / host, port, secure options
+    service: 'Gmail',
     auth: {
-      user: process.env.EMAIL_USER, // your email from .env
-      pass: process.env.EMAIL_PASS, // your email password or app password from .env
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
     },
   });
 
-  // Construct the verification URL (update "your-domain.com" with your actual domain)
   const verificationUrl = `http://localhost:3000/api/auth/verify-email?token=${verificationToken}`;
 
-  // Set up the email options
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
@@ -75,6 +81,5 @@ async function sendVerificationEmail(email: string, verificationToken: string) {
            <p>Please verify your email by clicking <a href="${verificationUrl}">here</a>.</p>`,
   };
 
-  // Send the email
   await transporter.sendMail(mailOptions);
 }

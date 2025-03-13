@@ -17,6 +17,7 @@ export default function AuthPage() {
     dob: "",
   });
 
+  const [errorMessage, setErrorMessage] = useState(""); // NEW: store error message
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -25,41 +26,41 @@ export default function AuthPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-  
+    setErrorMessage(""); // Clear any previous error
+
     if (isLogin) {
       // Sign-in flow
       try {
         const response = await fetch("/api/auth/signin", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          // We only need email, password, and userType for sign in
-          body: JSON.stringify({ 
-            email: formData.email, 
-            password: formData.password, 
-            userType 
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password,
+            userType,
           }),
         });
-  
+
         const result = await response.json();
         if (response.ok) {
-          alert(result.message);
-          // Save the JWT token in localStorage (or set a cookie)
+          // success
           localStorage.setItem("token", result.token);
-          // Redirect to a protected page, for example, profile page
           router.push("/profile");
         } else {
-          alert(result.error);
+          // display error inline
+          setErrorMessage(result.error || "An error occurred during sign in.");
         }
       } catch (error) {
         console.error("Sign in error:", error);
-        alert("An error occurred during sign in. Please try again later.");
+        setErrorMessage("An error occurred during sign in. Please try again later.");
       }
     } else {
-      // Sign-up flow (handled by your existing code)
+      // Sign-up flow
       if (formData.password !== formData.confirmPassword) {
-        alert("Passwords do not match!");
+        setErrorMessage("Passwords do not match!");
         return;
       }
+
       const endpoint = userType === "Patient" ? "/api/patients" : "/api/doctors";
       try {
         const response = await fetch(endpoint, {
@@ -68,22 +69,18 @@ export default function AuthPage() {
           body: JSON.stringify({ ...formData, userType }),
         });
         const result = await response.json();
+
         if (response.ok) {
-          alert(result.message);
           router.push("/auth/verify-message");
         } else {
-          alert(result.error);
+          setErrorMessage(result.error || "An error occurred during sign up.");
         }
       } catch (error) {
         console.error("Sign up error:", error);
-        alert("An error occurred during sign up. Please try again later.");
+        setErrorMessage("An error occurred during sign up. Please try again later.");
       }
     }
   };
-  
-  
-
-
 
   return (
     <div
@@ -97,9 +94,7 @@ export default function AuthPage() {
         height: "100vh",
       }}
     >
-      {/* Form Container */}
       <div className="bg-white p-8 shadow-lg rounded-lg w-full max-w-md flex flex-col items-center">
-
         {/* Toggle Switch */}
         <div className="flex justify-between mb-6 w-full bg-gray-200 rounded-full p-1 relative">
           <div
@@ -125,9 +120,31 @@ export default function AuthPage() {
           </button>
         </div>
 
-        <h2 className="text-lg font-bold text-[#00BCD4] mb-4">{isLogin ? "Sign In to Your Account" : "Create an Account"}</h2>
+        <h2 className="text-lg font-bold text-[#00BCD4] mb-4">
+          {isLogin ? "Sign In to Your Account" : "Create an Account"}
+        </h2>
 
-        {/* Form */}
+        {errorMessage && (
+  <div className="relative mx-auto mt-1 w-80 max-w-md rounded-md bg-gradient-to-r from-[#00BCD4] to-[#008F9F] text-white border border-[#0] p-2 shadow-md flex items-center justify-center">
+    <span className="text-sm font-medium tracking-wide">{errorMessage}</span>
+    {/* Fading ECG Line */}
+    <svg
+      className="w-12 h-6 text-white ml-2 animate-ecg"
+      viewBox="0 0 100 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
+      <polyline
+        points="0,10 20,10 30,5 40,15 50,5 60,10 80,10 100,10"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  </div>
+)}
+
+
         <form className="space-y-4 w-full" onSubmit={handleSubmit}>
           {!isLogin && (
             <>
@@ -156,8 +173,22 @@ export default function AuthPage() {
 
               {/* First & Last Name */}
               <div className="grid grid-cols-2 gap-3">
-                <input type="text" name="firstName" placeholder="First Name" className="w-full p-2 border rounded-lg text-sm" onChange={handleChange} required />
-                <input type="text" name="lastName" placeholder="Last Name" className="w-full p-2 border rounded-lg text-sm" onChange={handleChange} required />
+                <input
+                  type="text"
+                  name="firstName"
+                  placeholder="First Name"
+                  className="w-full p-2 border rounded-lg text-sm"
+                  onChange={handleChange}
+                  required
+                />
+                <input
+                  type="text"
+                  name="lastName"
+                  placeholder="Last Name"
+                  className="w-full p-2 border rounded-lg text-sm"
+                  onChange={handleChange}
+                  required
+                />
               </div>
 
               {/* Gender & Date of Birth */}
@@ -167,26 +198,56 @@ export default function AuthPage() {
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                 </select>
-                <input type="date" name="dob" className="w-full p-2 border rounded-lg text-sm" onChange={handleChange} required />
+                <input
+                  type="date"
+                  name="dob"
+                  className="w-full p-2 border rounded-lg text-sm"
+                  onChange={handleChange}
+                  required
+                />
               </div>
             </>
           )}
 
           {/* Email & Password */}
-          <input type="email" name="email" placeholder="Email Address" className="w-full p-2 border rounded-lg text-sm" onChange={handleChange} required />
-          <input type="password" name="password" placeholder="Password" className="w-full p-2 border rounded-lg text-sm" onChange={handleChange} required />
-          
+          <input
+            type="email"
+            name="email"
+            placeholder="Email Address"
+            className="w-full p-2 border rounded-lg text-sm"
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            className="w-full p-2 border rounded-lg text-sm"
+            onChange={handleChange}
+            required
+          />
+
           {!isLogin && (
-            <input type="password" name="confirmPassword" placeholder="Confirm Password" className="w-full p-2 border rounded-lg text-sm" onChange={handleChange} required />
+            <input
+              type="password"
+              name="confirmPassword"
+              placeholder="Confirm Password"
+              className="w-full p-2 border rounded-lg text-sm"
+              onChange={handleChange}
+              required
+            />
           )}
 
-          {/* Submit Button */}
-          <button className="w-full bg-[#00BCD4] text-white py-3 rounded-lg text-sm font-semibold">{isLogin ? "Sign In" : "Sign Up"}</button>
+          <button className="w-full bg-[#00BCD4] text-white py-3 rounded-lg text-sm font-semibold">
+            {isLogin ? "Sign In" : "Sign Up"}
+          </button>
         </form>
 
         {/* Forgot Password */}
         {isLogin && (
-          <Link href="#" className="text-[#00BCD4] text-xs mt-2">Forgot password?</Link>
+          <Link href="#" className="text-[#00BCD4] text-xs mt-2">
+            Forgot password?
+          </Link>
         )}
       </div>
     </div>
