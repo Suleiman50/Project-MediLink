@@ -40,7 +40,30 @@ export async function POST(request: Request) {
     const tokenPayload = { id: user.id, email: user.email, userType };
     const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: "1h" });
 
-    return NextResponse.json({ message: "Sign in successful", token }, { status: 200 });
+    const userPayload: any = {
+      id: user.id,
+      firstName: user.first_name,
+      lastName: user.last_name,
+      email: user.email,
+      gender: user.gender,
+      dob: user.dob,
+      userType,
+    };
+    
+    // Add patient-specific fields
+    if (userType === "Patient") {
+      userPayload.height = (user as any).height || null;
+      userPayload.weight = (user as any).weight || null;
+      userPayload.bloodType = (user as any).bloodType || null;
+    }
+    
+    // Add doctor-specific fields
+    if (userType === "Doctor") {
+      userPayload.specialty = (user as any).specialty || null;
+    }
+    
+    return NextResponse.json({ message: "Sign in successful", token, user: userPayload }, { status: 200 });
+    
   } catch (error: any) {
     console.error("Sign in error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

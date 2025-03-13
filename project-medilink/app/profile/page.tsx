@@ -43,7 +43,19 @@ export default function ProfilePage() {
       .then((data) => {
         if (data.valid) {
           console.log("✅ Token is valid. User:", data.user);
-          setUser(data.user);
+          setUser({
+            firstName: data.user.firstName || "",
+            lastName: data.user.lastName || "",
+            email: data.user.email || "",
+            gender: data.user.gender || "",
+            dob: data.user.dob || "",
+            userType: data.user.userType || "",
+            height: data.user.height ?? "",
+            weight: data.user.weight ?? "",
+            bloodType: data.user.bloodType ?? "",
+            specialty: data.user.specialty ?? "",
+            clinicLocation: data.user.clinicLocation ?? "",
+          });
         } else {
           console.log("🔴 Invalid token. Redirecting to sign in.");
           localStorage.removeItem("token");
@@ -124,7 +136,7 @@ export default function ProfilePage() {
               { label: "Last Name", name: "lastName", disabled: true },
               { label: "Email", name: "email", disabled: true },
               { label: "Gender", name: "gender", disabled: true },
-              { label: "Date of Birth", name: "dob", disabled: true },
+              { label: "Date of Birth", name: "dob",value: user?.dob ? new Date(user.dob as string).toLocaleDateString("en-GB") : "", disabled: true },
               { label: "Age", name: "age", value: user?.dob ? calculateAge(user.dob).toString() : "Not Set", disabled: true },
             ].map(({ label, name, value, disabled }) => (
               <div key={name}>

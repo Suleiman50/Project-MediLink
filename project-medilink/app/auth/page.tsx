@@ -76,6 +76,10 @@ export default function AuthPage() {
           // success
           console.log("✅ Login successful. Storing token and user:", result);
           localStorage.setItem("token", result.token);
+          const formattedUser = {
+            ...result.user,
+            dob: result.user.dob ?new Date(result.user.dob as string).toISOString().split("T")[0] : "",  // Stores `YYYY-MM-DD`
+          };
           localStorage.setItem("user", JSON.stringify(result.user));
           router.push("/profile");
         } else {
