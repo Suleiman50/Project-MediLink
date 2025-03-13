@@ -29,6 +29,7 @@ model Patient {
   createdAt  DateTime   @default(now())
   verified   Boolean   @default(false)
   verificationToken String?
+  resetToken String?
 }
 
 model Doctor {
@@ -43,6 +44,7 @@ model Doctor {
   specialty  String?
   verified   Boolean   @default(false)
   verificationToken String?
+  resetToken String?
 }
 
 enum Gender {

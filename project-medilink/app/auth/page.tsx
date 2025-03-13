@@ -74,7 +74,9 @@ export default function AuthPage() {
         const result = await response.json();
         if (response.ok) {
           // success
+          console.log("✅ Login successful. Storing token and user:", result);
           localStorage.setItem("token", result.token);
+          localStorage.setItem("user", JSON.stringify(result.user));
           router.push("/profile");
         } else {
           // display error inline
@@ -307,7 +309,7 @@ export default function AuthPage() {
 
         {/* Forgot Password */}
         {isLogin && (
-          <Link href="#" className="text-[#00BCD4] text-xs mt-2">
+          <Link href="/auth/forgot-password" className="text-[#00BCD4] text-xs mt-2">
             Forgot password?
           </Link>
         )}

@@ -26,12 +26,38 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (!storedUser) {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.log("🔴 No token found. Redirecting to sign in.");
       router.push("/auth");
-    } else {
-      setUser(JSON.parse(storedUser));
+      return;
     }
+  
+    // ✅ Verify token with backend
+    fetch("/api/auth/verify-token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.valid) {
+          console.log("✅ Token is valid. User:", data.user);
+          setUser(data.user);
+        } else {
+          console.log("🔴 Invalid token. Redirecting to sign in.");
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          router.push("/auth");
+        }
+      })
+      .catch(() => {
+        console.log("🔴 Error verifying token. Redirecting to sign in.");
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        router.push("/auth");
+      });
+  
     setTimeout(() => setLoading(false), 100);
   }, [router]);
 
@@ -106,12 +132,14 @@ export default function ProfilePage() {
                 <input
                   type="text"
                   name={name}
-                  value={value ?? user?.[name] ?? ""}
+                  value={value ?? user?.[name as keyof typeof user] ?? ""}
+
                   disabled={disabled}
                   className="border p-4 rounded-xl w-full bg-white/40 text-black"
                 />
               </div>
             ))}
+            
 
             {/* Additional Fields for Patients */}
             {user?.userType === "Patient" && (
