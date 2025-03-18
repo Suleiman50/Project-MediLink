@@ -44,7 +44,7 @@ export async function POST(request: Request) {
 
     if (userType === "Patient") {
       const { height, weight, allergies, bloodType } = data;
-       console.log(data)
+
       // Update patient profile with correctly formatted values
       const updatedPatient = await prisma.patient.update({
         where: { id },

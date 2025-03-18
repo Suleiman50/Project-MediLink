@@ -18,10 +18,10 @@ export default function ProfilePage() {
     allergies?: string;
     bloodType?: string;
     specialty?: string;
-    clinicLocation?: string;
+    clinic_location?: string;
     profilePic?: string | null;
   } | null>(null);
-  
+
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -32,8 +32,7 @@ export default function ProfilePage() {
       router.push("/auth");
       return;
     }
-  
-    // ✅ Verify token with backend
+
     fetch("/api/auth/verify-token", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -42,7 +41,6 @@ export default function ProfilePage() {
       .then((res) => res.json())
       .then((data) => {
         if (data.valid) {
-          console.log("✅ Token is valid. User:", data.user);
           setUser({
             firstName: data.user.firstName || "",
             lastName: data.user.lastName || "",
@@ -53,24 +51,21 @@ export default function ProfilePage() {
             height: data.user.height ?? "",
             weight: data.user.weight ?? "",
             bloodType: data.user.bloodType ?? "",
+            allergies: data.user.allergies ?? "",
             specialty: data.user.specialty ?? "",
-            clinicLocation: data.user.clinicLocation ?? "",
+            clinic_location: data.user.clinic_location ?? "",
           });
         } else {
-          console.log("🔴 Invalid token. Redirecting to sign in.");
           localStorage.removeItem("token");
-          localStorage.removeItem("user");
           router.push("/auth");
         }
       })
       .catch(() => {
-        console.log("🔴 Error verifying token. Redirecting to sign in.");
         localStorage.removeItem("token");
-        localStorage.removeItem("user");
         router.push("/auth");
       });
-  
-    setTimeout(() => setLoading(false), 100);
+
+    setTimeout(() => setLoading(false), 500);
   }, [router]);
 
   const calculateAge = (dob: string) => {
@@ -84,93 +79,100 @@ export default function ProfilePage() {
     return age;
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     if (!user) return;
     setUser({ ...user, [e.target.name]: e.target.value });
   };
 
-  const handleSave = () => {
-    if (user) {
-      localStorage.setItem("user", JSON.stringify(user));
-      setIsEditing(false);
+  const handleSave = async () => {
+    if (!user) return;
+
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const updateData: any = {
+      height: user.height,
+      weight: user.weight,
+      allergies: user.allergies,
+      bloodType: user.bloodType,
+    };
+
+    if (user.userType === "Doctor") {
+      updateData.specialty = user.specialty;
+      updateData.clinic_location = user.clinic_location;
+    }
+
+    try {
+      const res = await fetch("/api/profile", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify(updateData),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        alert("Profile updated successfully!");
+        setIsEditing(false);
+      } else {
+        alert(`Error: ${data.error}`);
+      }
+    } catch (error) {
+      alert("Network error. Try again.");
     }
   };
 
   const handleSignOut = () => {
-    localStorage.removeItem("user"); // Remove user data
-    router.push("/auth"); // Redirect to login page
+    localStorage.removeItem("token");
+    router.push("/auth");
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex justify-center items-center bg-[#00BCD4] text-white text-lg">
-        Loading...
-      </div>
-    );
+    return <div className="min-h-screen flex justify-center items-center bg-[#00BCD4] text-white text-lg">Loading...</div>;
   }
 
   return (
-    <div 
-      className="h-full w-full flex flex-col items-center bg-cover bg-center px-4 relative backdrop-blur-xl bg-white/30" 
-      style={{ backgroundImage: "url('/s.jpg')" }} 
-    >
-      {/* Profile Card */}
+    <div className="h-full w-full flex flex-col items-center bg-cover bg-center px-4 relative backdrop-blur-xl bg-white/30" style={{ backgroundImage: "url('/s.jpg')" }}>
       <div className="p-14 w-full max-w-5xl flex items-start space-x-14 mt-10 bg-white/20 backdrop-blur-lg rounded-[32px] shadow-xl border border-white/20">
         <div className="flex flex-col items-center">
-          {/* Profile Picture */}
           <div className="relative w-48 h-48">
             <Image src={user?.profilePic || "/profile-icon.png"} alt="Profile" width={192} height={192} className="rounded-full border-4 border-white shadow-lg" />
           </div>
-          <button className="mt-5 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg text-md font-semibold hover:bg-gray-300 transition">
-            Change Photo
-          </button>
         </div>
 
-        {/* Profile Info */}
         <div className="w-full">
           <h2 className="text-4xl font-bold text-white mb-8 border-b border-white pb-3 text-center">Personal Information</h2>
           <div className="grid grid-cols-2 gap-10">
-            {/* Common Fields */}
             {[
               { label: "First Name", name: "firstName", disabled: true },
               { label: "Last Name", name: "lastName", disabled: true },
               { label: "Email", name: "email", disabled: true },
               { label: "Gender", name: "gender", disabled: true },
-              { label: "Date of Birth", name: "dob",value: user?.dob ? new Date(user.dob as string).toLocaleDateString("en-GB") : "", disabled: true },
+              { label: "Date of Birth", name: "dob", disabled: true },
               { label: "Age", name: "age", value: user?.dob ? calculateAge(user.dob).toString() : "Not Set", disabled: true },
             ].map(({ label, name, value, disabled }) => (
               <div key={name}>
                 <label className="text-white font-semibold text-lg">{label}</label>
-                <input
-                  type="text"
-                  name={name}
-                  value={value ?? user?.[name as keyof typeof user] ?? ""}
-
-                  disabled={disabled}
-                  className="border p-4 rounded-xl w-full bg-white/40 text-black"
-                />
+                <input type="text" name={name} value={value ?? user?.[name as keyof typeof user] ?? ""} disabled={disabled} className="border p-4 rounded-xl w-full bg-white/40 text-black" />
               </div>
             ))}
-            
 
-            {/* Additional Fields for Patients */}
             {user?.userType === "Patient" && (
               <>
                 <div>
-                  <label className="text-white font-semibold text-lg">Height (cm)</label>
+                  <label className="text-white font-semibold text-lg">Height</label>
                   <input type="text" name="height" value={user?.height ?? ""} onChange={handleChange} disabled={!isEditing} className="border p-4 rounded-xl w-full bg-white/40 text-black" />
                 </div>
-
                 <div>
-                  <label className="text-white font-semibold text-lg">Weight (kg)</label>
+                  <label className="text-white font-semibold text-lg">Weight</label>
                   <input type="text" name="weight" value={user?.weight ?? ""} onChange={handleChange} disabled={!isEditing} className="border p-4 rounded-xl w-full bg-white/40 text-black" />
                 </div>
-
                 <div>
                   <label className="text-white font-semibold text-lg">Allergies</label>
                   <input type="text" name="allergies" value={user?.allergies ?? ""} onChange={handleChange} disabled={!isEditing} className="border p-4 rounded-xl w-full bg-white/40 text-black" />
                 </div>
-
                 <div>
                   <label className="text-white font-semibold text-lg">Blood Type</label>
                   <input type="text" name="bloodType" value={user?.bloodType ?? ""} onChange={handleChange} disabled={!isEditing} className="border p-4 rounded-xl w-full bg-white/40 text-black" />
@@ -178,23 +180,20 @@ export default function ProfilePage() {
               </>
             )}
 
-            {/* Additional Fields for Doctors */}
-            {user?.userType === "Physician" && (
+            {user?.userType === "Doctor" && (
               <>
                 <div>
                   <label className="text-white font-semibold text-lg">Specialty</label>
                   <input type="text" name="specialty" value={user?.specialty ?? ""} onChange={handleChange} disabled={!isEditing} className="border p-4 rounded-xl w-full bg-white/40 text-black" />
                 </div>
-
                 <div>
                   <label className="text-white font-semibold text-lg">Clinic Location</label>
-                  <input type="text" name="clinicLocation" value={user?.clinicLocation ?? ""} onChange={handleChange} disabled={!isEditing} className="border p-4 rounded-xl w-full bg-white/40 text-black" />
+                  <input type="text" name="clinic_location" value={user?.clinic_location ?? ""} onChange={handleChange} disabled={!isEditing} className="border p-4 rounded-xl w-full bg-white/40 text-black" />
                 </div>
               </>
             )}
           </div>
 
-          {/* Buttons */}
           <div className="mt-10 flex justify-center space-x-8">
             <button className="px-8 py-4 bg-blue-500 text-white rounded-xl text-lg font-semibold" onClick={() => setIsEditing(!isEditing)}>
               {isEditing ? "Cancel" : "Edit Profile"}
