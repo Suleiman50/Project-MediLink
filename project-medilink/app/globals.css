@@ -5,15 +5,49 @@
 :root {
   --primary-color: #00BCD4;
 }
-/*noinspection CssInvalidUrlReference*/
 
-/* This line is red but yet the program works (weird) */
+/* Apply `s.jpg` background globally */
 body {
   background-image: url("/s.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   background-attachment: fixed;
+}
+
+/* Remove `s.jpg` background for specific pages */
+body.homepage,
+body.chatpage,
+body.realchatpage {
+  background: none !important;
+  background-color: var(--primary-color) !important;
+}
+
+/* Finisher Header covers entire screen */
+.finisher-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.finisher-header.loaded {
+  opacity: 1;
+}
+
+/* Loading states */
+.page-loading {
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.page-loaded {
+  opacity: 1;
 }
 
 .nav-link {
@@ -32,21 +66,8 @@ body {
   background: none; 
   box-shadow: none; 
 }
-@keyframes ecg-move {
-  0% { stroke-dashoffset: 100; }
-  50% { stroke-dashoffset: 0; }
-  100% { stroke-dashoffset: -100; }
-}
 
-@keyframes ecg-spike {
-  0%, 40% { transform: translateX(1); }
-  50% { transform: translateX(2px) scaleY(2); }
-  60% { transform: translateX(4px) scaleY(1); }
-  100% { transform: translateX(0); }
-}
-
-.animate-ecg {
-  stroke-dasharray: 100;
-  stroke-dashoffset: 100;
-  animation: ecg-move 3.4s linear infinite, ecg-spike 3.4s ease-in-out infinite;
+body.hidden {
+  opacity: 0;             /* or 0.0001 if 0 causes layout issues */
+  transition: opacity 0.5s ease;
 }
