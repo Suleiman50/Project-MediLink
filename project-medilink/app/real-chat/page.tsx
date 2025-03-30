@@ -2,11 +2,26 @@
 
 import { useEffect, useState } from "react";
 
+// Helper to convert YYYY-MM-DD to DD/MM/YYYY
+const convertToDDMMYYYY = (dateStr: string): string => {
+  const [year, month, day] = dateStr.split("-");
+  return `${day}/${month}/${year}`;
+};
+
 export default function RealChatPage() {
   const [messages, setMessages] = useState<
       { sender: "ai" | "user"; text: string }[]
   >([]);
   const [input, setInput] = useState("");
+  const [user, setUser] = useState<any>(null);
+
+  // Retrieve user data from localStorage on mount
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
 
   // Add a class to body on mount
   useEffect(() => {
@@ -53,11 +68,34 @@ export default function RealChatPage() {
       content: msg.text,
     }));
 
+    // Determine the user type. Assume that the stored user has a field "userType"
+    // If not, default to "Patient"
+    const userType = user?.userType || "Patient";
+
+    // If the user is a Patient, populate the medical profile from the stored user data.
+    const medicalProfile =
+        userType.toLowerCase() === "patient"
+            ? {
+              weight: user.weight ? user.weight.toString() : "not specified",
+              height: user.height ? user.height.toString() : "not specified",
+              // Convert stored DOB from "YYYY-MM-DD" to "DD/MM/YYYY"
+              dob: user.dob ? convertToDDMMYYYY(user.dob) : "not specified",
+              gender: user.gender ? user.gender : "not specified",
+              bloodType: user.bloodType ? user.bloodType : "not specified",
+              allergies: user.allergies ? user.allergies : "not specified",
+            }
+            : {};
+
     try {
       const res = await fetch("/api/chatgpt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: conversationForServer }),
+        // Include userType and medicalProfile in the payload
+        body: JSON.stringify({
+          userType,
+          medicalProfile,
+          messages: conversationForServer,
+        }),
       });
 
       if (!res.ok) {
