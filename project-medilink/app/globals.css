@@ -18,7 +18,8 @@ body {
 /* Remove `s.jpg` background for specific pages */
 body.homepage,
 body.chatpage,
-body.realchatpage {
+body.realchatpage,
+body.authpage {
   background: none !important;
   background-color: var(--primary-color) !important;
 }

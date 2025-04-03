@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -16,6 +16,106 @@ export default function AuthPage() {
     gender: "",
     dob: "",
   });
+
+  // Add class to body to remove background
+  useEffect(() => {
+    // Add class to remove s.jpg background
+    document.body.classList.add("authpage");
+    
+    // Create and load the script
+    const script = document.createElement("script");
+    script.src = "/finisher-header.es7.min.js";
+    script.async = true;
+
+    interface FinisherHeaderOptions {
+      count: number;
+      size: {
+        min: number;
+        max: number;
+        pulse: number;
+      };
+      speed: {
+        x: {
+          min: number;
+          max: number;
+        };
+        y: {
+          min: number;
+          max: number;
+        };
+      };
+      colors: {
+        background: string;
+        particles: string[];
+      };
+      blending: string;
+      opacity: {
+        center: number;
+        edge: number;
+      };
+      skew: number;
+      shapes: string[];
+    }
+
+    interface Window {
+      FinisherHeader: new (options: FinisherHeaderOptions) => void;
+    }
+
+    script.onload = () => {
+      if (typeof window !== 'undefined' && (window as unknown as Window).FinisherHeader) {
+        new (window as unknown as Window).FinisherHeader({
+          count: 4,
+          size: {
+            min: 1200,
+            max: 1500,
+            pulse: 0.1
+          },
+          speed: {
+            x: {
+              min: 0,
+              max: 0.2
+            },
+            y: {
+              min: 0,
+              max: 0.2
+            }
+          },
+          colors: {
+            background: "#00bcd4",
+            particles: [
+              "#00bcd4",
+              "#0c9cff",
+              "#15a0de"
+            ]
+          },
+          blending: "lighten",
+          opacity: {
+            center: 0.8,
+            edge: 0.2
+          },
+          skew: 0,
+          shapes: [
+            "t"
+          ]
+        });
+        
+        // Add loaded class to finisher-header
+        const finisherHeader = document.querySelector('.finisher-header');
+        if (finisherHeader) {
+          finisherHeader.classList.add('loaded');
+        }
+      }
+    };
+
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.classList.remove("authpage");
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+    };
+  }, []);
 
   const [errorMessage, setErrorMessage] = useState(""); // NEW: store error message
   const router = useRouter();
@@ -76,10 +176,6 @@ export default function AuthPage() {
           // success
           console.log("✅ Login successful. Storing token and user:", result);
           localStorage.setItem("token", result.token);
-          const formattedUser = {
-            ...result.user,
-            dob: result.user.dob ?new Date(result.user.dob as string).toISOString().split("T")[0] : "",  // Stores `YYYY-MM-DD`
-          };
           localStorage.setItem("user", JSON.stringify(result.user));
           router.push("/profile");
         } else {
@@ -119,18 +215,11 @@ export default function AuthPage() {
   };
 
   return (
-    <div
-      className="min-h-screen flex flex-col items-center justify-center bg-cover bg-center bg-no-repeat"
-      style={{
-        backgroundImage: "url('/s.jpg')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-        width: "100vw",
-        height: "100vh",
-      }}
-    >
-      <div className="bg-white p-8 shadow-lg rounded-lg w-full max-w-md flex flex-col items-center">
+    <div className="min-h-screen flex flex-col items-center justify-center">
+      {/* Finisher Header Background */}
+      <div className="finisher-header absolute inset-0 z-0"></div>
+      
+      <div className="bg-white p-8 shadow-lg rounded-lg w-full max-w-md flex flex-col items-center z-10">
         {/* Toggle Switch */}
         <div className="flex justify-between mb-6 w-full bg-gray-200 rounded-full p-1 relative">
           <div

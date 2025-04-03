@@ -58,6 +58,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Link href="/chat" className="nav-link">
               Chat
             </Link>
+            <Link href="/search" className="nav-link">
+              Search
+            </Link>
           </div>
 
           {/* Right side (Burger Button on mobile + Profile Icon) */}
@@ -106,6 +109,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </Link>
               <Link href="/chat" onClick={closeMenu} className="nav-link">
                 Chat
+              </Link>
+              <Link href="/search" onClick={closeMenu} className="nav-link">
+                Search
               </Link>
             </div>
           </div>
