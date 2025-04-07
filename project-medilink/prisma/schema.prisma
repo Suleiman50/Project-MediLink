@@ -43,7 +43,7 @@ model Doctor {
   clinic_location   String?
   height            Float?
   weight            Float?
-  phone_number      String     @unique
+  phone_number      String?    @unique
 }
 
 enum Gender {
