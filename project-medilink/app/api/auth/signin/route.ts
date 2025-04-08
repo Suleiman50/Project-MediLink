@@ -60,6 +60,7 @@ export async function POST(request: Request) {
     // Add doctor-specific fields
     if (userType === "Doctor") {
       userPayload.specialty = (user as any).specialty || null;
+      userPayload.phone_number = (user as Doctor).phone_number || null;
     }
     
     return NextResponse.json({ message: "Sign in successful", token, user: userPayload }, { status: 200 });

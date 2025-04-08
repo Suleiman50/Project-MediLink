@@ -39,6 +39,7 @@ export async function POST(request: Request) {
         dob: formattedDOB,
         gender: body.gender.toUpperCase(),
         specialty: body.specialty,
+        phone_number: body.phoneNumber,
         verified: false,
         verificationToken: verificationToken,
       },

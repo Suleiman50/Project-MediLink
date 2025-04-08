@@ -62,7 +62,7 @@ export async function POST(request: Request) {
       }, { status: 200 });
 
     } else if (userType === "Doctor") {
-      const { height, weight, allergies, bloodType, specialty, clinic_location } = data;
+      const { height, weight, allergies, bloodType, specialty, clinic_location,phoneNumber } = data;
 
       // Update doctor profile with correctly formatted values
       const updatedDoctor = await prisma.doctor.update({
@@ -74,6 +74,7 @@ export async function POST(request: Request) {
           bloodType: parseBloodType(bloodType), // ✅ Converts "O+" → "O_POS"
           specialty: specialty || null,
           clinic_location: clinic_location || null,
+          phone_number: phoneNumber || null,
         },
       });
 
