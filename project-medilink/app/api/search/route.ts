@@ -12,13 +12,31 @@ export async function GET(request: Request) {
       return NextResponse.json({ doctors: [] });
     }
 
-    // Search doctors based on name or specialty
+    // Split the query into individual search terms (e.g., "Cardiologist Clinic" becomes ["Cardiologist", "Clinic"])
+    const queryTerms = query.split(' ').map(term => term.trim()).filter(term => term.length > 0);
+
+    // Create an array of `OR` conditions for first_name, last_name, and specialty based on the search terms
+    const nameOrSpecialtyConditions = queryTerms.map(term => ({
+      OR: [
+        { first_name: { contains: term, mode: 'insensitive' } },
+        { last_name: { contains: term, mode: 'insensitive' } },
+        { specialty: { contains: term, mode: 'insensitive' } },
+      ],
+    }));
+
+    // Special handling for exact match on common specialties like "General Practitioner"
+    const exactSpecialtyConditions = queryTerms.includes("General") && queryTerms.includes("Practitioner") 
+      ? [
+          { specialty: { equals: "General Practitioner", mode: 'insensitive' } }
+        ]
+      : [];
+
+    // Combine all search conditions into an AND clause to ensure all terms are matched
     const doctors = await prisma.doctor.findMany({
       where: {
-        OR: [
-          { first_name: { contains: query, mode: 'insensitive' } },
-          { last_name: { contains: query, mode: 'insensitive' } },
-          { specialty: { contains: query, mode: 'insensitive' } }
+        AND: [
+          ...nameOrSpecialtyConditions,  // Name search conditions
+          ...exactSpecialtyConditions,  // Exact match for General Practitioner
         ],
         verified: true, // Only return verified doctors
       },
@@ -29,6 +47,7 @@ export async function GET(request: Request) {
         specialty: true,
         clinic_location: true,
         email: true,
+        phone_number: true,
       },
     });
 
@@ -36,11 +55,11 @@ export async function GET(request: Request) {
     const formattedDoctors = doctors.map(doc => ({
       id: doc.id.toString(),
       name: `Dr. ${doc.first_name} ${doc.last_name}`,
-      specialty: doc.specialty || 'General Practitioner',
+      specialty: doc.specialty ,
       location: doc.clinic_location || 'Location not specified',
       address: doc.clinic_location || 'Address not specified',
       email: doc.email,
-      phone: 'Contact via email', // For privacy, we'll only show email
+      phone: doc.phone_number || 'Contact via email', // For privacy, we'll only show email
     }));
 
     return NextResponse.json({ doctors: formattedDoctors });

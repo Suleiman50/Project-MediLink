@@ -69,6 +69,6 @@ body.authpage {
 }
 
 body.hidden {
-  opacity: 0;             /* or 0.0001 if 0 causes layout issues */
+  opacity: 0;
   transition: opacity 0.5s ease;
 }

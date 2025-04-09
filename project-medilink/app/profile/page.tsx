@@ -19,6 +19,7 @@ export default function ProfilePage() {
     bloodType?: string;
     specialty?: string;
     clinic_location?: string;
+    phone_number?: string;
     profilePic?: string | null;
   } | null>(null);
 
@@ -54,6 +55,7 @@ export default function ProfilePage() {
             allergies: data.user.allergies ?? "",
             specialty: data.user.specialty ?? "",
             clinic_location: data.user.clinic_location ?? "",
+            phone_number: data.user.phone_number ?? "",
           });
         } else {
           localStorage.removeItem("token");
@@ -90,17 +92,15 @@ export default function ProfilePage() {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    const updateData: any = {
+    const updateData = {
       height: user.height,
       weight: user.weight,
       allergies: user.allergies,
       bloodType: user.bloodType,
+      specialty: user.specialty,
+      clinic_location: user.clinic_location,
+      phone_number: user.phone_number,
     };
-
-    if (user.userType === "Doctor") {
-      updateData.specialty = user.specialty;
-      updateData.clinic_location = user.clinic_location;
-    }
 
     try {
       const res = await fetch("/api/profile", {
@@ -119,7 +119,7 @@ export default function ProfilePage() {
       } else {
         alert(`Error: ${data.error}`);
       }
-    } catch (error) {
+    } catch {
       alert("Network error. Try again.");
     }
   };
@@ -189,6 +189,18 @@ export default function ProfilePage() {
                 <div>
                   <label className="text-white font-semibold text-lg">Clinic Location</label>
                   <input type="text" name="clinic_location" value={user?.clinic_location ?? ""} onChange={handleChange} disabled={!isEditing} className="border p-4 rounded-xl w-full bg-white/40 text-black" />
+                </div>
+                <div>
+                  <label className="text-white font-semibold text-lg">Phone Number</label>
+                  <input
+                    type="tel"
+                    name="phone_number"
+                    value={user?.phone_number ?? ""}
+                    onChange={handleChange}
+                    placeholder="Enter phone number"
+                    className="border p-4 rounded-xl w-full bg-white/40 text-black"
+                    disabled={!isEditing}
+                  />
                 </div>
               </>
             )}
