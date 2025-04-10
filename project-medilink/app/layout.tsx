@@ -101,9 +101,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/" onClick={closeMenu} className="nav-link">
                 Home
               </Link>
-              <Link href="/about" onClick={closeMenu} className="nav-link">
-                About
-              </Link>
               <Link href="/chat" onClick={closeMenu} className="nav-link">
                 Chat
               </Link>
