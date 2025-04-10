@@ -25,7 +25,8 @@ export default function ProfilePage() {
 
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-
+  const [updateMessage, setUpdateMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -114,13 +115,19 @@ export default function ProfilePage() {
 
       const data = await res.json();
       if (res.ok) {
-        alert("Profile updated successfully!");
+        setUpdateMessage("Profile updated successfully!");
         setIsEditing(false);
+        setTimeout(() => {
+          setUpdateMessage(null);
+        }, 3000);
       } else {
         alert(`Error: ${data.error}`);
       }
     } catch {
-      alert("Network error. Try again.");
+      setErrorMessage("Network error. Please Try again.");
+      setTimeout(() => {
+        setUpdateMessage(null);
+      }, 3000);
     }
   };
 
@@ -141,7 +148,6 @@ export default function ProfilePage() {
             <Image src={user?.profilePic || "/profile-icon.png"} alt="Profile" width={192} height={192} className="rounded-full border-4 border-white shadow-lg" />
           </div>
         </div>
-
         <div className="w-full">
           <h2 className="text-4xl font-bold text-white mb-8 border-b border-white pb-3 text-center">Personal Information</h2>
           <div className="grid grid-cols-2 gap-10">
@@ -161,12 +167,13 @@ export default function ProfilePage() {
 
             {user?.userType === "Patient" && (
               <>
+
                 <div>
-                  <label className="text-white font-semibold text-lg">Height</label>
+                  <label className="text-white font-semibold text-lg">Height (CM)</label>
                   <input type="text" name="height" value={user?.height ?? ""} onChange={handleChange} disabled={!isEditing} className="border p-4 rounded-xl w-full bg-white/40 text-black" />
                 </div>
                 <div>
-                  <label className="text-white font-semibold text-lg">Weight</label>
+                  <label className="text-white font-semibold text-lg">Weight (KG)</label>
                   <input type="text" name="weight" value={user?.weight ?? ""} onChange={handleChange} disabled={!isEditing} className="border p-4 rounded-xl w-full bg-white/40 text-black" />
                 </div>
                 <div>
@@ -193,7 +200,7 @@ export default function ProfilePage() {
                 <div>
                   <label className="text-white font-semibold text-lg">Phone Number</label>
                   <input
-                    type="tel"
+                    type="text"
                     name="phone_number"
                     value={user?.phone_number ?? ""}
                     onChange={handleChange}
@@ -205,7 +212,16 @@ export default function ProfilePage() {
               </>
             )}
           </div>
-
+          {updateMessage && (
+              <div className="mt-4 px-4 py-2 bg-green-100 text-green-800 rounded">
+                {updateMessage}
+              </div>
+          )}
+          {errorMessage && (
+              <div className="mt-4 px-4 py-2 bg-green-100 text-red-800 rounded">
+                {errorMessage}
+              </div>
+          )}
           <div className="mt-10 flex justify-center space-x-8">
             <button className="px-8 py-4 bg-blue-500 text-white rounded-xl text-lg font-semibold" onClick={() => setIsEditing(!isEditing)}>
               {isEditing ? "Cancel" : "Edit Profile"}

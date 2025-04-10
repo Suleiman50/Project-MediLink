@@ -69,6 +69,7 @@ export async function POST(request: Request) {
     if (userType === "Doctor") {
       userPayload.specialty = (user as any).specialty ?? null;
       userPayload.clinic_location = (user as any).clinic_location ?? null;
+      userPayload.phone_number = (user as any).phone_number ?? null;
     }
 
     return NextResponse.json({ valid: true, user: userPayload }, { status: 200 });

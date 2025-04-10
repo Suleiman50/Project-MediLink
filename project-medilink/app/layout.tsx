@@ -52,9 +52,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Link href="/" className="nav-link">
               Home
             </Link>
-            <Link href="/about" className="nav-link">
-              About
-            </Link>
             <Link href="/chat" className="nav-link">
               Chat
             </Link>
