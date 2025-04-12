@@ -9,9 +9,7 @@ const convertToDDMMYYYY = (dateStr: string): string => {
 };
 
 export default function RealChatPage() {
-  const [messages, setMessages] = useState<
-      { sender: "ai" | "user"; text: string }[]
-  >([]);
+  const [messages, setMessages] = useState<{ sender: "ai" | "user"; text: string }[]>([]);
   const [input, setInput] = useState("");
   const [user, setUser] = useState<any>(null);
 
@@ -55,9 +53,9 @@ export default function RealChatPage() {
     const userMessage = input;
     setInput("");
 
-    // Create new conversation history with the new user message and AI placeholder
-    const newUserMsg = { sender: "user", text: userMessage };
-    const aiPlaceholder = { sender: "ai", text: "" };
+    // Explicitly type the message objects so that sender is of type "user" | "ai"
+    const newUserMsg: { sender: "user"; text: string } = { sender: "user", text: userMessage };
+    const aiPlaceholder: { sender: "ai"; text: string } = { sender: "ai", text: "" };
     const newMessages = [...messages, newUserMsg, aiPlaceholder];
     setMessages(newMessages);
 
@@ -174,12 +172,7 @@ export default function RealChatPage() {
                             stroke="currentColor"
                             viewBox="0 0 24 24"
                         >
-                          <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M9 5l7 7-7 7"
-                          />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
                       </div>
                     </button>
@@ -190,12 +183,7 @@ export default function RealChatPage() {
           {/* Chat Messages (now part of the main scrolling page) */}
           <div className="space-y-6 mb-32">
             {messages.map((msg, index) => (
-                <div
-                    key={index}
-                    className={`flex ${
-                        msg.sender === "user" ? "justify-end" : "justify-start"
-                    }`}
-                >
+                <div key={index} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
                   <div
                       className={`max-w-[80%] p-4 rounded-[20px] shadow-sm ${
                           msg.sender === "user"
@@ -220,12 +208,7 @@ export default function RealChatPage() {
                       stroke="currentColor"
                       viewBox="0 0 24 24"
                   >
-                    <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                    />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                   </svg>
                 </button>
                 <input
@@ -240,18 +223,8 @@ export default function RealChatPage() {
                     onClick={handleSend}
                     className="p-2 text-white bg-[#00BCD4] rounded-full hover:bg-[#00BCD4]/90 transition-colors"
                 >
-                  <svg
-                      className="w-6 h-6"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                  >
-                    <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M14 5l7 7m0 0l-7 7m7-7H3"
-                    />
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                   </svg>
                 </button>
               </div>

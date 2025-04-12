@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
-export default function ResetPasswordPage() {
+function ResetPasswordPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get("token");
@@ -21,7 +21,7 @@ export default function ResetPasswordPage() {
     }
   }, [token]);
 
-  // ✅ Function to Evaluate Password Strength
+  // Function to Evaluate Password Strength
   const evaluatePasswordStrength = (password: string) => {
     let strength = "";
     let hint = "";
@@ -77,68 +77,79 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Reset Password</h2>
+      <div className="min-h-screen flex items-center justify-center bg-gray">
+        <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Reset Password</h2>
 
-        {message && <p className="text-red-500">{message}</p>}
+          {message && <p className="text-red-500">{message}</p>}
 
-        <form onSubmit={handleResetPassword} className="space-y-4">
-          <input
-            type="password"
-            placeholder="New Password"
-            className="w-full p-2 border rounded-lg"
-            value={password}
-            onChange={handlePasswordChange}
-            required
-          />
-          
-          {/* ✅ Password Strength Indicator */}
-          <div className="mt-1 h-[24px] flex items-center">
-          {password && (
-            <div className="mt-1">
-              <div className={`text-sm font-semibold ${passwordStrength === "Weak" ? "text-red-500" : passwordStrength === "Medium" ? "text-yellow-500" : "text-green-500"}`}>
-                {passwordStrength} {passwordHint && `- ${passwordHint}`}
-              </div>
-              
+          <form onSubmit={handleResetPassword} className="space-y-4">
+            <input
+                type="password"
+                placeholder="New Password"
+                className="w-full p-2 border rounded-lg"
+                value={password}
+                onChange={handlePasswordChange}
+                required
+            />
 
-              {/* ✅ Strength Meter Bar */}
-              <div className="h-1 w-full bg-gray-300 mt-1 rounded relative overflow-hidden">
-                <div
-                  className={`h-1 rounded transition-all duration-300 ${
-                    passwordStrength === "Strong"
-                      ? "bg-green-500 w-full"
-                      : passwordStrength === "Medium"
-                      ? "bg-yellow-500 w-2/3"
-                      : passwordStrength === "Weak"
-                      ? "bg-red-500 w-1/3"
-                      : "bg-gray-300 w-0"
-                  }`}
-                ></div>
-              </div>
+            {/* Password Strength Indicator */}
+            <div className="mt-1 h-[24px] flex items-center">
+              {password && (
+                  <div className="mt-1">
+                    <div className={`text-sm font-semibold ${
+                        passwordStrength === "Weak"
+                            ? "text-red-500"
+                            : passwordStrength === "Medium"
+                                ? "text-yellow-500"
+                                : "text-green-500"
+                    }`}>
+                      {passwordStrength} {passwordHint && `- ${passwordHint}`}
+                    </div>
+                    {/* Strength Meter Bar */}
+                    <div className="h-1 w-full bg-gray-300 mt-1 rounded relative overflow-hidden">
+                      <div
+                          className={`h-1 rounded transition-all duration-300 ${
+                              passwordStrength === "Strong"
+                                  ? "bg-green-500 w-full"
+                                  : passwordStrength === "Medium"
+                                      ? "bg-yellow-500 w-2/3"
+                                      : passwordStrength === "Weak"
+                                          ? "bg-red-500 w-1/3"
+                                          : "bg-gray-300 w-0"
+                          }`}
+                      ></div>
+                    </div>
+                  </div>
+              )}
             </div>
-            
-          )}
-          </div>
 
-          <input
-            type="password"
-            placeholder="Confirm New Password"
-            className="w-full p-2 border rounded-lg"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-          />
+            <input
+                type="password"
+                placeholder="Confirm New Password"
+                className="w-full p-2 border rounded-lg"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+            />
 
-          <button
-            type="submit"
-            className="w-full bg-blue-500 text-white py-2 rounded-lg"
-            disabled={loading}
-          >
-            {loading ? "Resetting..." : "Reset Password"}
-          </button>
-        </form>
+            <button
+                type="submit"
+                className="w-full bg-blue-500 text-white py-2 rounded-lg"
+                disabled={loading}
+            >
+              {loading ? "Resetting..." : "Reset Password"}
+            </button>
+          </form>
+        </div>
       </div>
-    </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+      <Suspense fallback={<div>Loading...</div>}>
+        <ResetPasswordPageContent />
+      </Suspense>
   );
 }
