@@ -38,8 +38,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid user type" }, { status: 400 });
     }
 
-    // Send reset email
-    const resetUrl = `http://localhost:3000/auth/reset-password?token=${resetToken}`;
+    // Use the environment variable for the base URL
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    const resetUrl = `${baseUrl}/auth/reset-password?token=${resetToken}`;
 
     const transporter = nodemailer.createTransport({
       service: "Gmail",

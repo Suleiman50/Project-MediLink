@@ -38,5 +38,5 @@ export async function GET(request: Request) {
   }
 
   // Redirect the user to a friendly success page
-  return NextResponse.redirect("http://localhost:3000/auth/verify-success");
+  return NextResponse.redirect("/auth/verify-success");
 }
