@@ -13,7 +13,9 @@ async function sendVerificationEmail(email: string, verificationToken: string) {
     },
   });
 
-  const verificationUrl = `http://localhost:3000/api/auth/verify-email?token=${verificationToken}`;
+  // Use the environment variable for the base URL, falling back to localhost if not defined.
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  const verificationUrl = `${baseUrl}/api/auth/verify-email?token=${verificationToken}`;
 
   const mailOptions = {
     from: process.env.EMAIL_USER,
@@ -26,6 +28,7 @@ async function sendVerificationEmail(email: string, verificationToken: string) {
 
   await transporter.sendMail(mailOptions);
 }
+
 const validatePasswordStrength = (password: string) => {
   if (password.length < 6) return "Password must be at least 6 characters long.";
   if (!/[A-Z]/.test(password)) return "Password must contain at least one uppercase letter.";
@@ -33,6 +36,7 @@ const validatePasswordStrength = (password: string) => {
   if (!/[!@#$%^&*]/.test(password)) return "Password must contain at least one special character (!@#$%^&*).";
   return null; // Valid password
 };
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -43,14 +47,15 @@ export async function POST(request: Request) {
     });
     if (existingPatient) {
       return new Response(
-        JSON.stringify({ error: "User already exists" }),
-        {
-          status: 400,
-          headers: { 'Content-Type': 'application/json' },
-        }
+          JSON.stringify({ error: "User already exists" }),
+          {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' },
+          }
       );
     }
-    const passwordError = validatePasswordStrength(body.password); if (passwordError) {
+    const passwordError = validatePasswordStrength(body.password);
+    if (passwordError) {
       return new Response(JSON.stringify({ error: passwordError }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
@@ -87,11 +92,11 @@ export async function POST(request: Request) {
     await sendVerificationEmail(body.email, verificationToken);
 
     return new Response(
-      JSON.stringify({ message: "Patient account created. A verification email has been sent." }),
-      {
-        status: 201,
-        headers: { 'Content-Type': 'application/json' },
-      }
+        JSON.stringify({ message: "Patient account created. A verification email has been sent." }),
+        {
+          status: 201,
+          headers: { 'Content-Type': 'application/json' },
+        }
     );
   } catch (error: any) {
     console.error('Error creating patient:', error);

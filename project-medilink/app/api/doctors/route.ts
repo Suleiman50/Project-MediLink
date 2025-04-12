@@ -14,8 +14,8 @@ export async function POST(request: Request) {
     });
     if (existingDoctor) {
       return new NextResponse(
-        JSON.stringify({ error: "User already exists" }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+          JSON.stringify({ error: "User already exists" }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
@@ -49,8 +49,8 @@ export async function POST(request: Request) {
     await sendVerificationEmail(body.email, verificationToken);
 
     return new NextResponse(
-      JSON.stringify({ message: "Doctor account created. A verification email has been sent." }),
-      { status: 201, headers: { 'Content-Type': 'application/json' } }
+        JSON.stringify({ message: "Doctor account created. A verification email has been sent." }),
+        { status: 201, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (error: any) {
     console.error('Error creating doctor:', error);
@@ -71,7 +71,9 @@ async function sendVerificationEmail(email: string, verificationToken: string) {
     },
   });
 
-  const verificationUrl = `http://localhost:3000/api/auth/verify-email?token=${verificationToken}`;
+  // Use the environment variable for the base URL. Fallback to localhost if not defined.
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  const verificationUrl = `${baseUrl}/api/auth/verify-email?token=${verificationToken}`;
 
   const mailOptions = {
     from: process.env.EMAIL_USER,
@@ -84,6 +86,7 @@ async function sendVerificationEmail(email: string, verificationToken: string) {
 
   await transporter.sendMail(mailOptions);
 }
+
 const validatePasswordStrength = (password: string) => {
   if (password.length < 6) return "Password must be at least 6 characters long.";
   if (!/[A-Z]/.test(password)) return "Password must contain at least one uppercase letter.";
