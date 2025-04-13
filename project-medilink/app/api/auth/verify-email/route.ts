@@ -38,5 +38,6 @@ export async function GET(request: Request) {
   }
 
   // Redirect the user to a friendly success page
-  return NextResponse.redirect("/auth/verify-success");
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  return NextResponse.redirect(new URL("/auth/verify-success", baseUrl));
 }
