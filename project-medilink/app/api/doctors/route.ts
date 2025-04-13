@@ -54,10 +54,10 @@ export async function POST(request: Request) {
     );
   } catch (error: any) {
     console.error('Error creating doctor:', error);
-    return new NextResponse(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return new NextResponse(
+        JSON.stringify({ error: error.message }),
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
   }
 }
 
