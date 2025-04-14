@@ -3,8 +3,17 @@
 import { useEffect, useState } from "react";
 
 // Helper to convert YYYY-MM-DD to DD/MM/YYYY
+// Updated helper function to convert an ISO date string (or any valid date string)
+// into DD/MM/YYYY format.
 const convertToDDMMYYYY = (dateStr: string): string => {
-  const [year, month, day] = dateStr.split("-");
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) {
+    console.warn("Invalid date string:", dateStr);
+    return "not specified";
+  }
+  const day = date.getDate().toString().padStart(2, "0");
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const year = date.getFullYear().toString();
   return `${day}/${month}/${year}`;
 };
 
@@ -84,6 +93,7 @@ export default function RealChatPage() {
             }
             : {};
 
+    console.log("Medical Profile Payload:", medicalProfile);
     try {
       const res = await fetch("/api/chatgpt", {
         method: "POST",

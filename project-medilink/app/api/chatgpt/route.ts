@@ -8,8 +8,11 @@ function getProfileField(field: string | undefined): string {
 
 export async function POST(request: NextRequest) {
   try {
-    // Expect an object with "messages", "userType", and (if applicable) "medicalProfile"
-    const { messages, userType, medicalProfile } = await request.json();
+    // Parse and log the incoming payload to check if all fields are sent correctly
+    const payload = await request.json();
+    console.log('Received payload:', payload);
+
+    const { messages, userType, medicalProfile } = payload;
 
     if (!messages || !Array.isArray(messages)) {
       return NextResponse.json(
@@ -28,10 +31,10 @@ export async function POST(request: NextRequest) {
         '5. Recommend what type of doctor or specialist the patient should see for further evaluation.\n' +
         '6. Emphasize that your response is NOT a final diagnosis and encourage them to consult a real, licensed doctor for an official diagnosis.\n' +
         '7. Use a courteous and professional tone throughout the conversation.\n' +
-        '8. At the end, let the user know they can use the site’s search function to find the doctor they need.\n' + '' +
+        '8. At the end, let the user know they can use the site’s search function to find the doctor they need.\n' +
         '9. You will be given the medical profile for the patient below if the patient asks for their data tell them what you know so that you reassure them';
 
-    // If the user type is "Patient" append their medical profile details.
+    // If the user type is "Patient", append their medical profile details.
     if (userType && userType.toLowerCase() === 'patient') {
       const weight = getProfileField(medicalProfile?.weight);
       const height = getProfileField(medicalProfile?.height);
@@ -55,6 +58,8 @@ export async function POST(request: NextRequest) {
 - Gender: ${gender}
 - Blood Type: ${bloodType}
 - Allergies: ${allergies}`;
+    } else {
+      console.log('User is not a Patient; medical profile will not be appended.');
     }
 
     // Prepend the system instruction to the conversation history
@@ -62,6 +67,8 @@ export async function POST(request: NextRequest) {
       { role: 'system', content: systemMessage },
       ...messages,
     ];
+
+    console.log('Final conversation for OpenAI:', conversation);
 
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,

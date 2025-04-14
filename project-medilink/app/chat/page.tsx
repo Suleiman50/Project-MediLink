@@ -8,7 +8,7 @@ import Script from "next/script";
 // Extend the global Window interface to include FinisherHeader.
 declare global {
   interface Window {
-    FinisherHeader?: any; // You can refine this type if you know the exact configuration.
+    FinisherHeader?: any; // Refine this type if necessary.
   }
 }
 
@@ -18,6 +18,10 @@ export default function ChatPage() {
   const [isTyping, setIsTyping] = useState<{ user: boolean; ai: boolean }>({ user: false, ai: false });
   const [messageIndex, setMessageIndex] = useState(0);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  // Updated authentication state using the same logic as your ProfilePage.
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const conversation = [
     { sender: "user", text: "Hi, I'm feeling unwell and need some help." },
@@ -34,6 +38,32 @@ export default function ChatPage() {
     { sender: "ai", text: "You're welcome! If you need anything else, I'm here to help. Stay healthy!" }
   ];
 
+  // Verify token on mount (using the same logic as your ProfilePage)
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setIsAuthenticated(false);
+      return;
+    }
+    fetch("/api/auth/verify-token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token }),
+    })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.valid) {
+            setIsAuthenticated(true);
+          } else {
+            localStorage.removeItem("token");
+            setIsAuthenticated(false);
+          }
+        })
+        .catch(() => {
+          setIsAuthenticated(false);
+        });
+  }, []);
+
   useEffect(() => {
     document.body.classList.add("chatpage");
     document.body.style.backgroundColor = "#00BCD4";
@@ -47,9 +77,9 @@ export default function ChatPage() {
     if (messageIndex < conversation.length) {
       const currentMessage = conversation[messageIndex];
       setIsTyping(currentMessage.sender === "user" ? { user: true, ai: false } : { user: false, ai: true });
-
       const timeoutId = setTimeout(() => {
         setMessages((prev) => {
+          // Prevent duplicate messages.
           if (!prev.some((msg) => msg.text === currentMessage.text)) {
             return [...prev, currentMessage];
           }
@@ -58,7 +88,6 @@ export default function ChatPage() {
         setIsTyping({ user: false, ai: false });
         setMessageIndex((prevIndex) => prevIndex + 1);
       }, 3000);
-
       return () => clearTimeout(timeoutId);
     }
   }, [messageIndex]);
@@ -72,7 +101,6 @@ export default function ChatPage() {
     }
   }, [messages, isTyping]);
 
-  // Initialize FinisherHeader if available on window.
   useEffect(() => {
     if (typeof window !== "undefined" && window.FinisherHeader) {
       new window.FinisherHeader({
@@ -106,6 +134,16 @@ export default function ChatPage() {
       });
     }
   }, []);
+
+  // Handler for starting a chat – proceeds only if the user is authenticated.
+  const handleStartChat = () => {
+    if (!isAuthenticated) {
+      setErrorMessage("You must be signed in to start a chat.");
+      setTimeout(() => setErrorMessage(""), 3000);
+      return;
+    }
+    router.push("/real-chat");
+  };
 
   return (
       <>
@@ -148,13 +186,16 @@ export default function ChatPage() {
             <div className="mt-6 text-center text-white text-xl font-semibold">
               <p>Need further assistance? Start a real-time chat with MedAI!</p>
             </div>
-            <div className="mt-4 flex justify-center">
+            <div className="mt-4 flex flex-col items-center">
               <button
                   className="px-8 py-4 bg-green-500 text-white rounded-lg text-xl font-semibold shadow-lg hover:bg-green-600 transition"
-                  onClick={() => router.push("/real-chat")}
+                  onClick={handleStartChat}
               >
                 Start Chat with MedAI
               </button>
+              {errorMessage && (
+                  <p className="mt-2 text-red-400 text-sm">{errorMessage}</p>
+              )}
             </div>
           </div>
         </div>
