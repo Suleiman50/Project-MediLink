@@ -17,6 +17,7 @@ export default function AuthPage() {
     dob: "",
   });
 
+
   // Add class to body to remove background
   useEffect(() => {
     // Add class to remove s.jpg background

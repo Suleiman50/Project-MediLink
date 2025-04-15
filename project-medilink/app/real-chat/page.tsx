@@ -46,6 +46,7 @@ export default function RealChatPage() {
     });
   }, [messages]);
 
+
   // Helper: pause for a given duration (ms)
   const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 

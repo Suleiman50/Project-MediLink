@@ -217,6 +217,7 @@ export default function ProfilePage() {
                 {updateMessage}
               </div>
           )}
+
           {errorMessage && (
               <div className="mt-4 px-4 py-2 bg-green-100 text-red-800 rounded">
                 {errorMessage}

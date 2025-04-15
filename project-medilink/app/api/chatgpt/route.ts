@@ -8,6 +8,7 @@ function getProfileField(field: string | undefined): string {
 
 export async function POST(request: NextRequest) {
   try {
+
     // Parse and log the incoming payload to check if all fields are sent correctly
     const payload = await request.json();
     console.log('Received payload:', payload);

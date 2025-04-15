@@ -50,6 +50,7 @@ export default function ChatPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ token }),
     })
+
         .then((res) => res.json())
         .then((data) => {
           if (data.valid) {

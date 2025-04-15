@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_here";
 
+
 // Function to convert the BloodType enum to a readable format
 const formatBloodType = (value: BloodType | null) => {
   if (!value) return null;

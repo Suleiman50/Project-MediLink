@@ -28,6 +28,7 @@ export async function POST(request: Request) {
     // ✅ Convert string values to Float or null
     const parseFloatOrNull = (value: any) => (value !== undefined && value !== "" ? parseFloat(value) : null);
 
+
     // ✅ Map user input to valid BloodType enums
     const bloodTypeMap: Record<string, BloodType> = {
       "A+": BloodType.A_POS,
