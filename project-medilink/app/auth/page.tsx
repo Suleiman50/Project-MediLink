@@ -22,7 +22,7 @@ export default function AuthPage() {
   useEffect(() => {
     // Add class to remove s.jpg background
     document.body.classList.add("authpage");
-    
+
     // Create and load the script
     const script = document.createElement("script");
     script.src = "/finisher-header.es7.min.js";
@@ -99,7 +99,7 @@ export default function AuthPage() {
             "t"
           ]
         });
-        
+
         // Add loaded class to finisher-header
         const finisherHeader = document.querySelector('.finisher-header');
         if (finisherHeader) {
@@ -178,6 +178,7 @@ export default function AuthPage() {
           console.log("✅ Login successful. Storing token and user:", result);
           localStorage.setItem("token", result.token);
           localStorage.setItem("user", JSON.stringify(result.user));
+          console.log(localStorage.getItem("user"));
           router.push("/profile");
         } else {
           // display error inline
@@ -219,7 +220,7 @@ export default function AuthPage() {
     <div className="min-h-screen flex flex-col items-center justify-center">
       {/* Finisher Header Background */}
       <div className="finisher-header absolute inset-0 z-0"></div>
-      
+
       <div className="bg-white p-8 shadow-lg rounded-lg w-full max-w-md flex flex-col items-center z-10">
         {/* Toggle Switch */}
         <div className="flex justify-between mb-6 w-full bg-gray-200 rounded-full p-1 relative">

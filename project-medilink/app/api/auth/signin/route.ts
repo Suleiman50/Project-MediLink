@@ -55,6 +55,7 @@ export async function POST(request: Request) {
       userPayload.height = (user as any).height || null;
       userPayload.weight = (user as any).weight || null;
       userPayload.bloodType = (user as any).bloodType || null;
+      userPayload.allergies = (user as any).allergies || null;
     }
     
     // Add doctor-specific fields

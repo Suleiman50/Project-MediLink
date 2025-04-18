@@ -50,6 +50,7 @@ export async function POST(request: Request) {
         gender: body.gender.toUpperCase(),
         weight: body.weight,
         bloodType: body.bloodType,
+        allergies: body.allergies,
         verified: false,
         verificationToken,
       },
