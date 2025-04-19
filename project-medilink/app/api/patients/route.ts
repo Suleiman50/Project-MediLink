@@ -107,27 +107,37 @@ export async function GET() {
 // Function to send a verification email using Nodemailer
 async function sendVerificationEmail(email: string, verificationToken: string) {
   const transporter = nodemailer.createTransport({
-    service: 'Gmail',
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,               // startTLS, not SSL on connect
+    requireTLS: true,            // enforce STARTTLS
     auth: {
       user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
+      pass: process.env.EMAIL_PASS, // see note on App Password below
     },
+    connectionTimeout: 5000,      // fail fast if SMTP doesn’t respond
+    greetingTimeout: 2000,
+    logger: true,                 // log SMTP traffic
+    debug: true,
   });
 
-  // Use the environment variable for the base URL, falling back to localhost if not defined.
+  // 1) verify connection & credentials
+  console.log("📧 Verifying SMTP transporter...");
+  await transporter.verify();
+  console.log("📧 SMTP verified, sending mail…");
+
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
   const verificationUrl = `${baseUrl}/api/auth/verify-email?token=${verificationToken}`;
-
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
-    subject: 'Please verify your email address',
-    text: `Thank you for registering. Please verify your email by clicking the following link: ${verificationUrl}`,
-    html: `<p>Thank you for registering.</p>
-           <p>Please verify your email by clicking <a href="${verificationUrl}">here</a>.</p>`,
+    subject: "Please verify your email address",
+    text: `Click here: ${verificationUrl}`,
+    html: `<a href="${verificationUrl}">Verify your email</a>`,
   };
 
-  await transporter.sendMail(mailOptions);
+  const info = await transporter.sendMail(mailOptions);
+  console.log("📧 Email sent:", info.messageId);
 }
 
 const validatePasswordStrength = (password: string) => {
