@@ -6,39 +6,39 @@
   --primary-color: #00BCD4;
 }
 
-/* Apply `s.jpg` background globally */
+/* Base background */
 body {
-  background-image: url("/s.jpg");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
+  background-color: var(--primary-color);
 }
 
-/* Remove `s.jpg` background for specific pages */
+/* Remove background for specific pages */
 body.homepage,
 body.chatpage,
 body.realchatpage,
-body.authpage {
+body.authpage,
+body.profilepage {
   background: none !important;
   background-color: var(--primary-color) !important;
 }
 
-/* Finisher Header covers entire screen */
+/* Finisher Header styles */
 .finisher-header {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
-  pointer-events: none;
+  width: 100%;
+  height: 100%;
   z-index: -1;
-  opacity: 0;
-  transition: opacity 0.3s ease-in-out;
+  pointer-events: none;
 }
 
-.finisher-header.loaded {
-  opacity: 1;
+#finisher-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
 }
 
 /* Loading states */

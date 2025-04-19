@@ -27,6 +27,55 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [updateMessage, setUpdateMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Add profilepage class to body
+    document.body.classList.add('profilepage');
+
+    // Create the header element
+    const header = document.createElement('div');
+    header.className = 'finisher-header';
+    header.style.width = '100%';
+    header.style.height = '100vh';
+    document.body.appendChild(header);
+
+    // Load and initialize FinisherHeader
+    const script = document.createElement("script");
+    script.src = "/finisher-header.es8.min.js";
+    script.async = true;
+
+    script.onload = () => {
+      if (window.FinisherHeader) {
+        new window.FinisherHeader({
+          count: 12,
+          size: { min: 1300, max: 1500, pulse: 0 },
+          speed: { x: { min: 1.2, max: 3 }, y: { min: 0.6, max: 3 } },
+          colors: {
+            background: "#00bcd4",
+            particles: ["#1a5b9e", "#63cdf6"],
+          },
+          blending: "lighten",
+          opacity: { center: 0.6, edge: 0 },
+          skew: 0,
+          shapes: ["c"],
+          className: "finisher-header"
+        });
+      }
+    };
+
+    document.body.appendChild(script);
+
+    return () => {
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+      if (header.parentNode) {
+        header.parentNode.removeChild(header);
+      }
+      document.body.classList.remove('profilepage');
+    };
+  }, []);
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -141,7 +190,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="h-full w-full flex flex-col items-center bg-cover bg-center px-4 relative backdrop-blur-xl bg-white/30" style={{ backgroundImage: "url('/s.jpg')" }}>
+    <div className="h-full w-full flex flex-col items-center px-4 relative backdrop-blur-xl bg-white/30">
       <div className="p-14 w-full max-w-5xl flex items-start space-x-14 mt-10 bg-white/20 backdrop-blur-lg rounded-[32px] shadow-xl border border-white/20">
         <div className="flex flex-col items-center">
           <div className="relative w-48 h-48">
