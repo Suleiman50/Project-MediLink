@@ -57,14 +57,14 @@ export async function POST(request: Request) {
     });
 
     // Send a verification email
-    await sendVerificationEmail(body.email, verificationToken);
+    // AFTER prisma.patient.create(...)
+    sendVerificationEmail(body.email, verificationToken)
+        .then(() => console.log("📧 mail sent"))
+        .catch(err => console.error("📧 mail error", err));
 
-    return new NextResponse(
-        JSON.stringify({ message: "Patient account created. A verification email has been sent." }),
-        {
-          status: 201,
-          headers: { 'Content-Type': 'application/json' },
-        }
+    return NextResponse.json(
+        { message: "Patient created; verification e‑mail queued." },
+        { status: 201 }
     );
   } catch (error: any) {
     console.error('Error creating patient:', error);
