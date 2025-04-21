@@ -5,42 +5,12 @@ import nodemailer from "nodemailer";
 
 const prisma = new PrismaClient();
 
-export async function POST(request: Request) {
+// Helper to send reset email asynchronously
+async function sendResetEmail(email: string, resetToken: string) {
   try {
-    const { email } = await request.json();
-
-    let user: Patient | Doctor | null = await prisma.patient.findUnique({ where: { email } });
-    let isPatient = true;
-
-    if (!user) {
-      user = await prisma.doctor.findUnique({ where: { email } });
-      isPatient = false;
-    }
-
-    if (!user) {
-      return NextResponse.json({ error: "Email not found" }, { status: 404 });
-    }
-
-    // Generate a password reset token
-    const resetToken = crypto.randomBytes(32).toString("hex");
-
-    if (isPatient && "height" in user) {
-      await prisma.patient.update({
-        where: { email },
-        data: { resetToken },
-      });
-    } else if (!isPatient && "specialty" in user) {
-      await prisma.doctor.update({
-        where: { email },
-        data: { resetToken },
-      });
-    } else {
-      return NextResponse.json({ error: "Invalid user type" }, { status: 400 });
-    }
-
-    // Use the environment variable for the base URL
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-    const resetUrl = `${baseUrl}/auth/reset-password?token=${resetToken}`;
+    // Normalize base URL without trailing slash
+    const base = (process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000").replace(/\/$/, "");
+    const resetUrl = `${base}/auth/reset-password?token=${resetToken}`;
 
     const transporter = nodemailer.createTransport({
       service: "Gmail",
@@ -57,8 +27,42 @@ export async function POST(request: Request) {
       html: `<p>Click <a href="${resetUrl}">here</a> to reset your password.</p>`,
     });
 
-    return NextResponse.json({ message: "Reset email sent." }, { status: 200 });
-  } catch (error: unknown) {
+    console.log("[forgot-password] Reset email sent to", email);
+  } catch (err) {
+    console.error("[forgot-password] Error sending reset email to", email, err);
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const { email } = await request.json();
+
+    // Find user by email in patients or doctors
+    let user: Patient | Doctor | null = await prisma.patient.findUnique({ where: { email } });
+    let isPatient = true;
+
+    if (!user) {
+      user = await prisma.doctor.findUnique({ where: { email } });
+      isPatient = false;
+    }
+
+    if (!user) {
+      return NextResponse.json({ error: "Email not found" }, { status: 404 });
+    }
+
+    // Generate and store reset token
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    if (isPatient) {
+      await prisma.patient.update({ where: { email }, data: { resetToken } });
+    } else {
+      await prisma.doctor.update({ where: { email }, data: { resetToken } });
+    }
+
+    // Queue sending email without blocking response
+    setImmediate(() => sendResetEmail(email, resetToken));
+
+    return NextResponse.json({ message: "Password reset email queued." }, { status: 200 });
+  } catch (error) {
     console.error("Forgot password error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
