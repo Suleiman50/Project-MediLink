@@ -1,7 +1,39 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import nodemailer from 'nodemailer';
 
-const prisma = new PrismaClient();
+let prisma: PrismaClient;
+if (process.env.NODE_ENV === "production") {
+  prisma = new PrismaClient();
+} else {
+  // Use the alternative solution to cast globalThis as any
+  (globalThis as any).prisma = (globalThis as any).prisma || new PrismaClient();
+  prisma = (globalThis as any).prisma;
+}
+// Function to send email asynchronously
+const sendVerificationEmail = async (email: string, name: string) => {
+  const transporter = nodemailer.createTransport({
+    service: 'gmail', // or use another service like SendGrid, Mailgun
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASSWORD,
+    },
+  });
+
+  const mailOptions = {
+    from: 'your-email@example.com',
+    to: email,
+    subject: 'Email Verification Success',
+    text: `Hello ${name}, your email has been successfully verified.`,
+    html: `<p>Hello ${name}, your email has been successfully verified.</p>`,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+  } catch (error) {
+    console.error('Error sending email:', error);
+  }
+};
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -30,11 +62,15 @@ export async function GET(request: Request) {
       where: { id: doctor.id },
       data: { verified: true, verificationToken: null },
     });
+
+    sendVerificationEmail(doctor.email, `${doctor.first_name} ${doctor.last_name}`);  // Send email asynchronously
   } else if (patient) {
     await prisma.patient.update({
       where: { id: patient.id },
       data: { verified: true, verificationToken: null },
     });
+
+    sendVerificationEmail(patient.email, `${patient.first_name} ${patient.last_name}`);  // Send email asynchronously
   }
 
   // Redirect the user to a friendly success page
