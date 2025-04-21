@@ -86,7 +86,7 @@ async function sendVerificationEmail(email: string, token: string) {
     secure: false,           // STARTTLS
     requireTLS: true,
     auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
-    connectionTimeout: 4000, // NEW: shorter time‑outs
+    connectionTimeout: 5000, // NEW: shorter time‑outs
     socketTimeout: 4000,
     greetingTimeout: 3000,
   });

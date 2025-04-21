@@ -29,17 +29,13 @@ export default function ProfilePage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    // Add profilepage class to body
     document.body.classList.add('profilepage');
-
-    // Create the header element
     const header = document.createElement('div');
     header.className = 'finisher-header';
     header.style.width = '100%';
     header.style.height = '100vh';
     document.body.appendChild(header);
 
-    // Load and initialize FinisherHeader
     const script = document.createElement("script");
     script.src = "/finisher-header.es8.min.js";
     script.async = true;
@@ -50,10 +46,7 @@ export default function ProfilePage() {
           count: 12,
           size: { min: 1300, max: 1500, pulse: 0 },
           speed: { x: { min: 1.2, max: 3 }, y: { min: 0.6, max: 3 } },
-          colors: {
-            background: "#00bcd4",
-            particles: ["#1a5b9e", "#63cdf6"],
-          },
+          colors: { background: "#00bcd4", particles: ["#1a5b9e", "#63cdf6"] },
           blending: "lighten",
           opacity: { center: 0.6, edge: 0 },
           skew: 0,
@@ -62,16 +55,11 @@ export default function ProfilePage() {
         });
       }
     };
-
     document.body.appendChild(script);
 
     return () => {
-      if (script.parentNode) {
-        script.parentNode.removeChild(script);
-      }
-      if (header.parentNode) {
-        header.parentNode.removeChild(header);
-      }
+      if (script.parentNode) script.parentNode.removeChild(script);
+      if (header.parentNode) header.parentNode.removeChild(header);
       document.body.classList.remove('profilepage');
     };
   }, []);
@@ -79,7 +67,6 @@ export default function ProfilePage() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      console.log("🔴 No token found. Redirecting to sign in.");
       router.push("/auth");
       return;
     }
@@ -89,33 +76,36 @@ export default function ProfilePage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ token }),
     })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.valid) {
-          setUser({
-            firstName: data.user.firstName || "",
-            lastName: data.user.lastName || "",
-            email: data.user.email || "",
-            gender: data.user.gender || "",
-            dob: data.user.dob || "",
-            userType: data.user.userType || "",
-            height: data.user.height ?? "",
-            weight: data.user.weight ?? "",
-            bloodType: data.user.bloodType ?? "",
-            allergies: data.user.allergies ?? "",
-            specialty: data.user.specialty ?? "",
-            clinic_location: data.user.clinic_location ?? "",
-            phone_number: data.user.phone_number ?? "",
-          });
-        } else {
+        .then(res => res.json())
+        .then(data => {
+          if (data.valid) {
+            const u = data.user;
+            const initialUser = {
+              firstName: u.firstName || "",
+              lastName: u.lastName || "",
+              email: u.email || "",
+              gender: u.gender || "",
+              dob: u.dob || "",
+              userType: u.userType || "",
+              height: u.height?.toString() ?? "",
+              weight: u.weight?.toString() ?? "",
+              bloodType: u.bloodType ?? "",
+              allergies: u.allergies ?? "",
+              specialty: u.specialty ?? "",
+              clinic_location: u.clinic_location ?? "",
+              phone_number: u.phone_number ?? "",
+            };
+            setUser(initialUser);
+            localStorage.setItem("user", JSON.stringify(initialUser));
+          } else {
+            localStorage.removeItem("token");
+            router.push("/auth");
+          }
+        })
+        .catch(() => {
           localStorage.removeItem("token");
           router.push("/auth");
-        }
-      })
-      .catch(() => {
-        localStorage.removeItem("token");
-        router.push("/auth");
-      });
+        });
 
     setTimeout(() => setLoading(false), 500);
   }, [router]);
@@ -138,7 +128,6 @@ export default function ProfilePage() {
 
   const handleSave = async () => {
     if (!user) return;
-
     const token = localStorage.getItem("token");
     if (!token) return;
 
@@ -155,28 +144,38 @@ export default function ProfilePage() {
     try {
       const res = await fetch("/api/profile", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify(updateData),
       });
-
       const data = await res.json();
       if (res.ok) {
+        const u = data.user;
+        const newUser = {
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          gender: user.gender,
+          dob: user.dob,
+          userType: user.userType,
+          height: u.height?.toString() ?? "",
+          weight: u.weight?.toString() ?? "",
+          bloodType: u.bloodType ?? "",
+          allergies: u.allergies ?? "",
+          specialty: u.specialty ?? "",
+          clinic_location: u.clinic_location ?? "",
+          phone_number: u.phone_number ?? "",
+        };
+        setUser(newUser);
+        localStorage.setItem("user", JSON.stringify(newUser));
         setUpdateMessage("Profile updated successfully!");
         setIsEditing(false);
-        setTimeout(() => {
-          setUpdateMessage(null);
-        }, 3000);
+        setTimeout(() => setUpdateMessage(null), 3000);
       } else {
         alert(`Error: ${data.error}`);
       }
     } catch {
       setErrorMessage("Network error. Please Try again.");
-      setTimeout(() => {
-        setUpdateMessage(null);
-      }, 3000);
+      setTimeout(() => setErrorMessage(null), 3000);
     }
   };
 
@@ -190,103 +189,87 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="h-full w-full flex flex-col items-center px-4 relative backdrop-blur-xl bg-white/30">
-      <div className="p-14 w-full max-w-5xl flex items-start space-x-14 mt-10 bg-white/20 backdrop-blur-lg rounded-[32px] shadow-xl border border-white/20">
-        <div className="flex flex-col items-center">
-          <div className="relative w-48 h-48">
-            <Image src={user?.profilePic || "/profile-icon.png"} alt="Profile" width={192} height={192} className="rounded-full border-4 border-white shadow-lg" />
+      <div className="h-full w-full flex flex-col items-center px-4 relative backdrop-blur-xl bg-white/30">
+        <div className="p-14 w-full max-w-5xl flex items-start space-x-14 mt-10 bg-white/20 backdrop-blur-lg rounded-[32px] shadow-xl border border-white/20">
+          <div className="flex flex-col items-center">
+            <div className="relative w-48 h-48">
+              <Image src={user?.profilePic || "/profile-icon.png"} alt="Profile" width={192} height={192} className="rounded-full border-4 border-white shadow-lg" />
+            </div>
           </div>
-        </div>
-        <div className="w-full">
-          <h2 className="text-4xl font-bold text-white mb-8 border-b border-white pb-3 text-center">Personal Information</h2>
-          <div className="grid grid-cols-2 gap-10">
-            {[
-              { label: "First Name", name: "firstName", disabled: true },
-              { label: "Last Name", name: "lastName", disabled: true },
-              { label: "Email", name: "email", disabled: true },
-              { label: "Gender", name: "gender", disabled: true },
-              { label: "Date of Birth", name: "dob", disabled: true },
-              { label: "Age", name: "age", value: user?.dob ? calculateAge(user.dob).toString() : "Not Set", disabled: true },
-            ].map(({ label, name, value, disabled }) => (
-              <div key={name}>
-                <label className="text-white font-semibold text-lg">{label}</label>
-                <input type="text" name={name} value={value ?? user?.[name as keyof typeof user] ?? ""} disabled={disabled} className="border p-4 rounded-xl w-full bg-white/40 text-black" />
-              </div>
-            ))}
+          <div className="w-full">
+            <h2 className="text-4xl font-bold text-white mb-8 border-b border-white pb-3 text-center">Personal Information</h2>
+            <div className="grid grid-cols-2 gap-10">
+              {[
+                { label: "First Name", name: "firstName", disabled: true },
+                { label: "Last Name", name: "lastName", disabled: true },
+                { label: "Email", name: "email", disabled: true },
+                { label: "Gender", name: "gender", disabled: true },
+                { label: "Date of Birth", name: "dob", disabled: true },
+                { label: "Age", name: "age", value: user?.dob ? calculateAge(user.dob).toString() : "Not Set", disabled: true },
+              ].map(({ label, name, value, disabled }) => (
+                  <div key={name}>
+                    <label className="text-white font-semibold text-lg">{label}</label>
+                    <input type="text" name={name} value={value ?? user?.[name as keyof typeof user] ?? ""} disabled={disabled} className="border p-4 rounded-xl w-full bg-white/40 text-black" />
+                  </div>
+              ))}
 
-            {user?.userType === "Patient" && (
-              <>
+              {user?.userType === "Patient" && (
+                  <>
+                    <div>
+                      <label className="text-white font-semibold text-lg">Height (CM)</label>
+                      <input type="text" name="height" value={user?.height ?? ""} onChange={handleChange} disabled={!isEditing} className="border p-4 rounded-xl w-full	bg-white/40 text-black" />
+                    </div>
+                    <div>
+                      <label className="text-white font-semibold text-lg">Weight (KG)</label>
+                      <input type="text" name="weight" value={user?.weight ?? ""} onChange={handleChange} disabled={!isEditing} className="border p-4 rounded-xl w-full	bg-white/40 text-black" />
+                    </div>
+                    <div>
+                      <label className="text-white font-semibold text-lg">Allergies</label>
+                      <input type="text" name="allergies" value={user?.allergies ?? ""} onChange={handleChange} disabled={!isEditing} className="border p-4 rounded-xl w-full	bg-white/40 text-black" />
+                    </div>
+                    <div>
+                      <label className="text-white font-semibold text-lg">Blood Type</label>
+                      <input type="text" name="bloodType" value={user?.bloodType ?? ""} onChange={handleChange} disabled={!isEditing} className="border p-4 rounded-xl w-full	bg-white/40 text-black" />
+                    </div>
+                  </>
+              )}
 
-                <div>
-                  <label className="text-white font-semibold text-lg">Height (CM)</label>
-                  <input type="text" name="height" value={user?.height ?? ""} onChange={handleChange} disabled={!isEditing} className="border p-4 rounded-xl w-full bg-white/40 text-black" />
-                </div>
-                <div>
-                  <label className="text-white font-semibold text-lg">Weight (KG)</label>
-                  <input type="text" name="weight" value={user?.weight ?? ""} onChange={handleChange} disabled={!isEditing} className="border p-4 rounded-xl w-full bg-white/40 text-black" />
-                </div>
-                <div>
-                  <label className="text-white font-semibold text-lg">Allergies</label>
-                  <input type="text" name="allergies" value={user?.allergies ?? ""} onChange={handleChange} disabled={!isEditing} className="border p-4 rounded-xl w-full bg-white/40 text-black" />
-                </div>
-                <div>
-                  <label className="text-white font-semibold text-lg">Blood Type</label>
-                  <input type="text" name="bloodType" value={user?.bloodType ?? ""} onChange={handleChange} disabled={!isEditing} className="border p-4 rounded-xl w-full bg-white/40 text-black" />
-                </div>
-              </>
-            )}
+              {user?.userType === "Doctor" && (
+                  <>
+                    <div>
+                      <label className="text-white font-semibold text-lg">Specialty</label>
+                      <input type="text" name="specialty" value={user?.specialty ?? ""} onChange={handleChange} disabled={!isEditing} className="border p-4 rounded-xl w-full	bg-white/40 text-black" />
+                    </div>
+                    <div>
+                      <label className="text-white font-semibold text-lg">Clinic Location</label>
+                      <input type="text" name="clinic_location" value={user?.clinic_location ?? ""} onChange={handleChange} disabled={!isEditing} className="border p-4 rounded-xl w-full	bg-white/40 text-black" />
+                    </div>
+                    <div>
+                      <label className="text-white font-semibold text-lg">Phone Number</label>
+                      <input type="text" name="phone_number" value={user?.phone_number ?? ""} onChange={handleChange} disabled={!isEditing} className="border p-4 rounded-xl w-full	bg-white/40 text-black" />
+                    </div>
+                  </>
+              )}
+            </div>
 
-            {user?.userType === "Doctor" && (
-              <>
-                <div>
-                  <label className="text-white font-semibold text-lg">Specialty</label>
-                  <input type="text" name="specialty" value={user?.specialty ?? ""} onChange={handleChange} disabled={!isEditing} className="border p-4 rounded-xl w-full bg-white/40 text-black" />
-                </div>
-                <div>
-                  <label className="text-white font-semibold text-lg">Clinic Location</label>
-                  <input type="text" name="clinic_location" value={user?.clinic_location ?? ""} onChange={handleChange} disabled={!isEditing} className="border p-4 rounded-xl w-full bg-white/40 text-black" />
-                </div>
-                <div>
-                  <label className="text-white font-semibold text-lg">Phone Number</label>
-                  <input
-                    type="text"
-                    name="phone_number"
-                    value={user?.phone_number ?? ""}
-                    onChange={handleChange}
-                    placeholder="Enter phone number"
-                    className="border p-4 rounded-xl w-full bg-white/40 text-black"
-                    disabled={!isEditing}
-                  />
-                </div>
-              </>
-            )}
-          </div>
-          {updateMessage && (
-              <div className="mt-4 px-4 py-2 bg-green-100 text-green-800 rounded">
-                {updateMessage}
-              </div>
-          )}
+            {updateMessage && <div className="mt-4 px-4 py-2 bg-green-100 text-green-800 rounded">{updateMessage}</div>}
+            {errorMessage && <div className="mt-4 px-4 py-2 bg-red-100 text-red-800 rounded">{errorMessage}</div>}
 
-          {errorMessage && (
-              <div className="mt-4 px-4 py-2 bg-green-100 text-red-800 rounded">
-                {errorMessage}
-              </div>
-          )}
-          <div className="mt-10 flex justify-center space-x-8">
-            <button className="px-8 py-4 bg-blue-500 text-white rounded-xl text-lg font-semibold" onClick={() => setIsEditing(!isEditing)}>
-              {isEditing ? "Cancel" : "Edit Profile"}
-            </button>
-            {isEditing && (
-              <button className="px-8 py-4 bg-green-500 text-white rounded-xl text-lg font-semibold" onClick={handleSave}>
-                Save Changes
+            <div className="mt-10 flex justify-center space-x-8">
+              <button className="px-8 py-4 bg-blue-500 text-white rounded-xl text-lg font-semibold" onClick={() => setIsEditing(!isEditing)}>
+                {isEditing ? "Cancel" : "Edit Profile"}
               </button>
-            )}
-            <button className="px-8 py-4 bg-red-500 text-white rounded-xl text-lg font-semibold hover:bg-red-600 transition" onClick={handleSignOut}>
-              Sign Out
-            </button>
+              {isEditing && (
+                  <button className="px-8 py-4 bg-green-500 text-white rounded-xl text-lg font-semibold" onClick={handleSave}>
+                    Save Changes
+                  </button>
+              )}
+              <button className="px-8 py-4 bg-red-500 text-white rounded-xl text-lg font-semibold hover:bg-red-600 transition" onClick={handleSignOut}>
+                Sign Out
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
   );
 }
