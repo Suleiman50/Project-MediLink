@@ -202,7 +202,8 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen w-full flex flex-col items-center px-4 relative backdrop-blur-xl bg-white/30">
-      <div className="p-4 pt-20 md:p-14 w-full max-w-5xl flex flex-col md:flex-row items-start md:space-x-14 mt-4 md:mt-10 bg-white/20 backdrop-blur-lg rounded-[32px] shadow-xl border border-white/20">
+      <div className="p-4 md:p-14 w-full max-w-5xl flex flex-col md:flex-row items-start md:space-x-14 mt-4 md:mt-10 bg-white/20 backdrop-blur-lg rounded-[32px] shadow-xl border border-white/20">
+        {/* Profile Image Section */}
         <div className="flex flex-col items-center w-full md:w-auto mb-8 md:mb-0">
           <div className="relative w-32 h-32 md:w-48 md:h-48">
             <Image
@@ -215,13 +216,14 @@ export default function ProfilePage() {
           </div>
         </div>
 
+        {/* Profile Information Section */}
         <div className="w-full">
           <h2 className="text-2xl md:text-4xl font-bold text-white mb-4 md:mb-8 border-b border-white pb-2 md:pb-3 text-center">
             Personal Information
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-10">
-            {/* Personal Info Fields */}
+            {/* Common Fields */}
             {[
               { label: "First Name", name: "firstName", disabled: true },
               { label: "Last Name", name: "lastName", disabled: true },
@@ -251,7 +253,7 @@ export default function ProfilePage() {
               </div>
             ))}
 
-            {/* Conditional Fields */}
+            {/* Patient Specific Fields */}
             {user?.userType === "Patient" && (
               <>
                 <div className="mb-2 md:mb-0">
@@ -267,10 +269,49 @@ export default function ProfilePage() {
                     className="border p-2 md:p-4 rounded-xl w-full bg-white/40 text-black text-sm md:text-base"
                   />
                 </div>
-                {/* Repeat similar structure for other Patient fields */}
+                <div className="mb-2 md:mb-0">
+                  <label className="text-white font-semibold text-sm md:text-lg">
+                    Weight (KG)
+                  </label>
+                  <input
+                    type="text"
+                    name="weight"
+                    value={user?.weight ?? ""}
+                    onChange={handleChange}
+                    disabled={!isEditing}
+                    className="border p-2 md:p-4 rounded-xl w-full bg-white/40 text-black text-sm md:text-base"
+                  />
+                </div>
+                <div className="mb-2 md:mb-0">
+                  <label className="text-white font-semibold text-sm md:text-lg">
+                    Allergies
+                  </label>
+                  <input
+                    type="text"
+                    name="allergies"
+                    value={user?.allergies ?? ""}
+                    onChange={handleChange}
+                    disabled={!isEditing}
+                    className="border p-2 md:p-4 rounded-xl w-full bg-white/40 text-black text-sm md:text-base"
+                  />
+                </div>
+                <div className="mb-2 md:mb-0">
+                  <label className="text-white font-semibold text-sm md:text-lg">
+                    Blood Type
+                  </label>
+                  <input
+                    type="text"
+                    name="bloodType"
+                    value={user?.bloodType ?? ""}
+                    onChange={handleChange}
+                    disabled={!isEditing}
+                    className="border p-2 md:p-4 rounded-xl w-full bg-white/40 text-black text-sm md:text-base"
+                  />
+                </div>
               </>
             )}
 
+            {/* Doctor Specific Fields */}
             {user?.userType === "Doctor" && (
               <>
                 <div className="mb-2 md:mb-0">
@@ -286,12 +327,37 @@ export default function ProfilePage() {
                     className="border p-2 md:p-4 rounded-xl w-full bg-white/40 text-black text-sm md:text-base"
                   />
                 </div>
-                {/* Repeat similar structure for other Doctor fields */}
+                <div className="mb-2 md:mb-0">
+                  <label className="text-white font-semibold text-sm md:text-lg">
+                    Clinic Location
+                  </label>
+                  <input
+                    type="text"
+                    name="clinic_location"
+                    value={user?.clinic_location ?? ""}
+                    onChange={handleChange}
+                    disabled={!isEditing}
+                    className="border p-2 md:p-4 rounded-xl w-full bg-white/40 text-black text-sm md:text-base"
+                  />
+                </div>
+                <div className="mb-2 md:mb-0">
+                  <label className="text-white font-semibold text-sm md:text-lg">
+                    Phone Number
+                  </label>
+                  <input
+                    type="text"
+                    name="phone_number"
+                    value={user?.phone_number ?? ""}
+                    onChange={handleChange}
+                    disabled={!isEditing}
+                    className="border p-2 md:p-4 rounded-xl w-full bg-white/40 text-black text-sm md:text-base"
+                  />
+                </div>
               </>
             )}
           </div>
 
-          {/* Messages */}
+          {/* Status Messages */}
           <div className="mt-4 md:mt-10">
             {updateMessage && (
               <div className="px-2 py-1 md:px-4 md:py-2 bg-green-100 text-green-800 rounded text-sm md:text-base">
@@ -305,25 +371,24 @@ export default function ProfilePage() {
             )}
           </div>
 
-          {/* Buttons */}
-          {/* Buttons */}
-          <div className="mt-6 md:mt-10 flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-8">
+          {/* Action Buttons */}
+          <div className="mt-6 md:mt-10 flex flex-col md:flex-row justify-center space-y-4 md:space-y-0 md:space-x-8">
             <button
-              className="px-6 py-3 md:px-8 md:py-4 bg-blue-500 text-white rounded-xl text-sm md:text-lg font-semibold w-full md:w-auto text-center"
+              className="px-4 py-2 md:px-8 md:py-4 bg-blue-500 text-white rounded-xl text-sm md:text-lg font-semibold hover:bg-blue-600 transition"
               onClick={() => setIsEditing(!isEditing)}
             >
               {isEditing ? "Cancel" : "Edit Profile"}
             </button>
             {isEditing && (
               <button
-                className="px-6 py-3 md:px-8 md:py-4 bg-green-500 text-white rounded-xl text-sm md:text-lg font-semibold w-full md:w-auto text-center"
+                className="px-4 py-2 md:px-8 md:py-4 bg-green-500 text-white rounded-xl text-sm md:text-lg font-semibold hover:bg-green-600 transition"
                 onClick={handleSave}
               >
                 Save Changes
               </button>
             )}
             <button
-              className="px-6 py-3 md:px-8 md:py-4 bg-red-500 text-white rounded-xl text-sm md:text-lg font-semibold hover:bg-red-600 transition w-full md:w-auto text-center"
+              className="px-4 py-2 md:px-8 md:py-4 bg-red-500 text-white rounded-xl text-sm md:text-lg font-semibold hover:bg-red-600 transition"
               onClick={handleSignOut}
             >
               Sign Out
