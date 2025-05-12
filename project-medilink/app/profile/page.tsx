@@ -202,7 +202,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen w-full flex flex-col items-center px-4 relative backdrop-blur-xl bg-white/30">
-      <div className="p-4 py-20 md:p-14 w-full max-w-5xl flex flex-col md:flex-row items-start md:space-x-14 mt-4 md:mt-10 bg-white/20 backdrop-blur-lg rounded-[32px] shadow-xl border border-white/20">
+      <div className="p-4 pt-20 md:p-14 w-full max-w-5xl flex flex-col md:flex-row items-start md:space-x-14 mt-4 md:mt-10 bg-white/20 backdrop-blur-lg rounded-[32px] shadow-xl border border-white/20">
         <div className="flex flex-col items-center w-full md:w-auto mb-8 md:mb-0">
           <div className="relative w-32 h-32 md:w-48 md:h-48">
             <Image
