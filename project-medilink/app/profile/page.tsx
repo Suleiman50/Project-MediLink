@@ -202,7 +202,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen w-full flex flex-col items-center px-4 relative backdrop-blur-xl bg-white/30">
-      <div className="p-4 md:p-14 w-full max-w-5xl flex flex-col md:flex-row items-start md:space-x-14 mt-4 md:mt-10 bg-white/20 backdrop-blur-lg rounded-[32px] shadow-xl border border-white/20">
+      <div className="p-4 py-20 md:p-14 w-full max-w-5xl flex flex-col md:flex-row items-start md:space-x-14 mt-4 md:mt-10 bg-white/20 backdrop-blur-lg rounded-[32px] shadow-xl border border-white/20">
         <div className="flex flex-col items-center w-full md:w-auto mb-8 md:mb-0">
           <div className="relative w-32 h-32 md:w-48 md:h-48">
             <Image
@@ -306,23 +306,24 @@ export default function ProfilePage() {
           </div>
 
           {/* Buttons */}
-          <div className="mt-6 md:mt-10 flex flex-col md:flex-row justify-center space-y-4 md:space-y-0 md:space-x-8">
+          {/* Buttons */}
+          <div className="mt-6 md:mt-10 flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-8">
             <button
-              className="px-4 py-2 md:px-8 md:py-4 bg-blue-500 text-white rounded-xl text-sm md:text-lg font-semibold"
+              className="px-6 py-3 md:px-8 md:py-4 bg-blue-500 text-white rounded-xl text-sm md:text-lg font-semibold w-full md:w-auto text-center"
               onClick={() => setIsEditing(!isEditing)}
             >
               {isEditing ? "Cancel" : "Edit Profile"}
             </button>
             {isEditing && (
               <button
-                className="px-4 py-2 md:px-8 md:py-4 bg-green-500 text-white rounded-xl text-sm md:text-lg font-semibold"
+                className="px-6 py-3 md:px-8 md:py-4 bg-green-500 text-white rounded-xl text-sm md:text-lg font-semibold w-full md:w-auto text-center"
                 onClick={handleSave}
               >
                 Save Changes
               </button>
             )}
             <button
-              className="px-4 py-2 md:px-8 md:py-4 bg-red-500 text-white rounded-xl text-sm md:text-lg font-semibold hover:bg-red-600 transition"
+              className="px-6 py-3 md:px-8 md:py-4 bg-red-500 text-white rounded-xl text-sm md:text-lg font-semibold hover:bg-red-600 transition w-full md:w-auto text-center"
               onClick={handleSignOut}
             >
               Sign Out
