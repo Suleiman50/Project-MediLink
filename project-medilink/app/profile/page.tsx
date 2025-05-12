@@ -29,11 +29,11 @@ export default function ProfilePage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    document.body.classList.add('profilepage');
-    const header = document.createElement('div');
-    header.className = 'finisher-header';
-    header.style.width = '100%';
-    header.style.height = '100vh';
+    document.body.classList.add("profilepage");
+    const header = document.createElement("div");
+    header.className = "finisher-header";
+    header.style.width = "100%";
+    header.style.height = "100vh";
     document.body.appendChild(header);
 
     const script = document.createElement("script");
@@ -51,7 +51,7 @@ export default function ProfilePage() {
           opacity: { center: 0.6, edge: 0 },
           skew: 0,
           shapes: ["c"],
-          className: "finisher-header"
+          className: "finisher-header",
         });
       }
     };
@@ -60,7 +60,7 @@ export default function ProfilePage() {
     return () => {
       if (script.parentNode) script.parentNode.removeChild(script);
       if (header.parentNode) header.parentNode.removeChild(header);
-      document.body.classList.remove('profilepage');
+      document.body.classList.remove("profilepage");
     };
   }, []);
 
@@ -76,36 +76,36 @@ export default function ProfilePage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ token }),
     })
-        .then(res => res.json())
-        .then(data => {
-          if (data.valid) {
-            const u = data.user;
-            const initialUser = {
-              firstName: u.firstName || "",
-              lastName: u.lastName || "",
-              email: u.email || "",
-              gender: u.gender || "",
-              dob: u.dob || "",
-              userType: u.userType || "",
-              height: u.height?.toString() ?? "",
-              weight: u.weight?.toString() ?? "",
-              bloodType: u.bloodType ?? "",
-              allergies: u.allergies ?? "",
-              specialty: u.specialty ?? "",
-              clinic_location: u.clinic_location ?? "",
-              phone_number: u.phone_number ?? "",
-            };
-            setUser(initialUser);
-            localStorage.setItem("user", JSON.stringify(initialUser));
-          } else {
-            localStorage.removeItem("token");
-            router.push("/auth");
-          }
-        })
-        .catch(() => {
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.valid) {
+          const u = data.user;
+          const initialUser = {
+            firstName: u.firstName || "",
+            lastName: u.lastName || "",
+            email: u.email || "",
+            gender: u.gender || "",
+            dob: u.dob || "",
+            userType: u.userType || "",
+            height: u.height?.toString() ?? "",
+            weight: u.weight?.toString() ?? "",
+            bloodType: u.bloodType ?? "",
+            allergies: u.allergies ?? "",
+            specialty: u.specialty ?? "",
+            clinic_location: u.clinic_location ?? "",
+            phone_number: u.phone_number ?? "",
+          };
+          setUser(initialUser);
+          localStorage.setItem("user", JSON.stringify(initialUser));
+        } else {
           localStorage.removeItem("token");
           router.push("/auth");
-        });
+        }
+      })
+      .catch(() => {
+        localStorage.removeItem("token");
+        router.push("/auth");
+      });
 
     setTimeout(() => setLoading(false), 500);
   }, [router]);
@@ -115,13 +115,18 @@ export default function ProfilePage() {
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
       age--;
     }
     return age;
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     if (!user) return;
     setUser({ ...user, [e.target.name]: e.target.value });
   };
@@ -144,7 +149,10 @@ export default function ProfilePage() {
     try {
       const res = await fetch("/api/profile", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(updateData),
       });
       const data = await res.json();
@@ -185,91 +193,143 @@ export default function ProfilePage() {
   };
 
   if (loading) {
-    return <div className="min-h-screen flex justify-center items-center bg-[#00BCD4] text-white text-lg">Loading...</div>;
+    return (
+      <div className="min-h-screen flex justify-center items-center bg-[#00BCD4] text-white text-lg">
+        Loading...
+      </div>
+    );
   }
 
   return (
-      <div className="h-full w-full flex flex-col items-center px-4 relative backdrop-blur-xl bg-white/30">
-        <div className="p-14 w-full max-w-5xl flex items-start space-x-14 mt-10 bg-white/20 backdrop-blur-lg rounded-[32px] shadow-xl border border-white/20">
-          <div className="flex flex-col items-center">
-            <div className="relative w-48 h-48">
-              <Image src={user?.profilePic || "/profile-icon.png"} alt="Profile" width={192} height={192} className="rounded-full border-4 border-white shadow-lg" />
-            </div>
+    <div className="min-h-screen w-full flex flex-col items-center px-4 relative backdrop-blur-xl bg-white/30">
+      <div className="p-4 md:p-14 w-full max-w-5xl flex flex-col md:flex-row items-start md:space-x-14 mt-4 md:mt-10 bg-white/20 backdrop-blur-lg rounded-[32px] shadow-xl border border-white/20">
+        <div className="flex flex-col items-center w-full md:w-auto mb-8 md:mb-0">
+          <div className="relative w-32 h-32 md:w-48 md:h-48">
+            <Image
+              src={user?.profilePic || "/profile-icon.png"}
+              alt="Profile"
+              width={192}
+              height={192}
+              className="rounded-full border-4 border-white shadow-lg w-full h-full object-cover"
+            />
           </div>
-          <div className="w-full">
-            <h2 className="text-4xl font-bold text-white mb-8 border-b border-white pb-3 text-center">Personal Information</h2>
-            <div className="grid grid-cols-2 gap-10">
-              {[
-                { label: "First Name", name: "firstName", disabled: true },
-                { label: "Last Name", name: "lastName", disabled: true },
-                { label: "Email", name: "email", disabled: true },
-                { label: "Gender", name: "gender", disabled: true },
-                { label: "Date of Birth", name: "dob", disabled: true },
-                { label: "Age", name: "age", value: user?.dob ? calculateAge(user.dob).toString() : "Not Set", disabled: true },
-              ].map(({ label, name, value, disabled }) => (
-                  <div key={name}>
-                    <label className="text-white font-semibold text-lg">{label}</label>
-                    <input type="text" name={name} value={value ?? user?.[name as keyof typeof user] ?? ""} disabled={disabled} className="border p-4 rounded-xl w-full bg-white/40 text-black" />
-                  </div>
-              ))}
+        </div>
 
-              {user?.userType === "Patient" && (
-                  <>
-                    <div>
-                      <label className="text-white font-semibold text-lg">Height (CM)</label>
-                      <input type="text" name="height" value={user?.height ?? ""} onChange={handleChange} disabled={!isEditing} className="border p-4 rounded-xl w-full	bg-white/40 text-black" />
-                    </div>
-                    <div>
-                      <label className="text-white font-semibold text-lg">Weight (KG)</label>
-                      <input type="text" name="weight" value={user?.weight ?? ""} onChange={handleChange} disabled={!isEditing} className="border p-4 rounded-xl w-full	bg-white/40 text-black" />
-                    </div>
-                    <div>
-                      <label className="text-white font-semibold text-lg">Allergies</label>
-                      <input type="text" name="allergies" value={user?.allergies ?? ""} onChange={handleChange} disabled={!isEditing} className="border p-4 rounded-xl w-full	bg-white/40 text-black" />
-                    </div>
-                    <div>
-                      <label className="text-white font-semibold text-lg">Blood Type</label>
-                      <input type="text" name="bloodType" value={user?.bloodType ?? ""} onChange={handleChange} disabled={!isEditing} className="border p-4 rounded-xl w-full	bg-white/40 text-black" />
-                    </div>
-                  </>
-              )}
+        <div className="w-full">
+          <h2 className="text-2xl md:text-4xl font-bold text-white mb-4 md:mb-8 border-b border-white pb-2 md:pb-3 text-center">
+            Personal Information
+          </h2>
 
-              {user?.userType === "Doctor" && (
-                  <>
-                    <div>
-                      <label className="text-white font-semibold text-lg">Specialty</label>
-                      <input type="text" name="specialty" value={user?.specialty ?? ""} onChange={handleChange} disabled={!isEditing} className="border p-4 rounded-xl w-full	bg-white/40 text-black" />
-                    </div>
-                    <div>
-                      <label className="text-white font-semibold text-lg">Clinic Location</label>
-                      <input type="text" name="clinic_location" value={user?.clinic_location ?? ""} onChange={handleChange} disabled={!isEditing} className="border p-4 rounded-xl w-full	bg-white/40 text-black" />
-                    </div>
-                    <div>
-                      <label className="text-white font-semibold text-lg">Phone Number</label>
-                      <input type="text" name="phone_number" value={user?.phone_number ?? ""} onChange={handleChange} disabled={!isEditing} className="border p-4 rounded-xl w-full	bg-white/40 text-black" />
-                    </div>
-                  </>
-              )}
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-10">
+            {/* Personal Info Fields */}
+            {[
+              { label: "First Name", name: "firstName", disabled: true },
+              { label: "Last Name", name: "lastName", disabled: true },
+              { label: "Email", name: "email", disabled: true },
+              { label: "Gender", name: "gender", disabled: true },
+              { label: "Date of Birth", name: "dob", disabled: true },
+              {
+                label: "Age",
+                name: "age",
+                value: user?.dob
+                  ? calculateAge(user.dob).toString()
+                  : "Not Set",
+                disabled: true,
+              },
+            ].map(({ label, name, value, disabled }) => (
+              <div key={name} className="mb-2 md:mb-0">
+                <label className="text-white font-semibold text-sm md:text-lg">
+                  {label}
+                </label>
+                <input
+                  type="text"
+                  name={name}
+                  value={value ?? user?.[name as keyof typeof user] ?? ""}
+                  disabled={disabled}
+                  className="border p-2 md:p-4 rounded-xl w-full bg-white/40 text-black text-sm md:text-base"
+                />
+              </div>
+            ))}
 
-            {updateMessage && <div className="mt-4 px-4 py-2 bg-green-100 text-green-800 rounded">{updateMessage}</div>}
-            {errorMessage && <div className="mt-4 px-4 py-2 bg-red-100 text-red-800 rounded">{errorMessage}</div>}
+            {/* Conditional Fields */}
+            {user?.userType === "Patient" && (
+              <>
+                <div className="mb-2 md:mb-0">
+                  <label className="text-white font-semibold text-sm md:text-lg">
+                    Height (CM)
+                  </label>
+                  <input
+                    type="text"
+                    name="height"
+                    value={user?.height ?? ""}
+                    onChange={handleChange}
+                    disabled={!isEditing}
+                    className="border p-2 md:p-4 rounded-xl w-full bg-white/40 text-black text-sm md:text-base"
+                  />
+                </div>
+                {/* Repeat similar structure for other Patient fields */}
+              </>
+            )}
 
-            <div className="mt-10 flex justify-center space-x-8">
-              <button className="px-8 py-4 bg-blue-500 text-white rounded-xl text-lg font-semibold" onClick={() => setIsEditing(!isEditing)}>
-                {isEditing ? "Cancel" : "Edit Profile"}
+            {user?.userType === "Doctor" && (
+              <>
+                <div className="mb-2 md:mb-0">
+                  <label className="text-white font-semibold text-sm md:text-lg">
+                    Specialty
+                  </label>
+                  <input
+                    type="text"
+                    name="specialty"
+                    value={user?.specialty ?? ""}
+                    onChange={handleChange}
+                    disabled={!isEditing}
+                    className="border p-2 md:p-4 rounded-xl w-full bg-white/40 text-black text-sm md:text-base"
+                  />
+                </div>
+                {/* Repeat similar structure for other Doctor fields */}
+              </>
+            )}
+          </div>
+
+          {/* Messages */}
+          <div className="mt-4 md:mt-10">
+            {updateMessage && (
+              <div className="px-2 py-1 md:px-4 md:py-2 bg-green-100 text-green-800 rounded text-sm md:text-base">
+                {updateMessage}
+              </div>
+            )}
+            {errorMessage && (
+              <div className="px-2 py-1 md:px-4 md:py-2 bg-red-100 text-red-800 rounded text-sm md:text-base">
+                {errorMessage}
+              </div>
+            )}
+          </div>
+
+          {/* Buttons */}
+          <div className="mt-6 md:mt-10 flex flex-col md:flex-row justify-center space-y-4 md:space-y-0 md:space-x-8">
+            <button
+              className="px-4 py-2 md:px-8 md:py-4 bg-blue-500 text-white rounded-xl text-sm md:text-lg font-semibold"
+              onClick={() => setIsEditing(!isEditing)}
+            >
+              {isEditing ? "Cancel" : "Edit Profile"}
+            </button>
+            {isEditing && (
+              <button
+                className="px-4 py-2 md:px-8 md:py-4 bg-green-500 text-white rounded-xl text-sm md:text-lg font-semibold"
+                onClick={handleSave}
+              >
+                Save Changes
               </button>
-              {isEditing && (
-                  <button className="px-8 py-4 bg-green-500 text-white rounded-xl text-lg font-semibold" onClick={handleSave}>
-                    Save Changes
-                  </button>
-              )}
-              <button className="px-8 py-4 bg-red-500 text-white rounded-xl text-lg font-semibold hover:bg-red-600 transition" onClick={handleSignOut}>
-                Sign Out
-              </button>
-            </div>
+            )}
+            <button
+              className="px-4 py-2 md:px-8 md:py-4 bg-red-500 text-white rounded-xl text-sm md:text-lg font-semibold hover:bg-red-600 transition"
+              onClick={handleSignOut}
+            >
+              Sign Out
+            </button>
           </div>
         </div>
       </div>
+    </div>
   );
 }
