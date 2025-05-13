@@ -1,7 +1,8 @@
+// app/api/patients/route.ts
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
-import nodemailer from "nodemailer";
+import { transporter } from "@/lib/mailer";
 import { NextResponse } from "next/server";
 
 /* ----------  POST /api/patients  ---------- */
@@ -10,9 +11,14 @@ export async function POST(request: Request) {
     const body = await request.json();
 
     // 1. Duplicate check
-    const existing = await prisma.patient.findUnique({ where: { email: body.email } });
+    const existing = await prisma.patient.findUnique({
+      where: { email: body.email },
+    });
     if (existing) {
-      return NextResponse.json({ error: "User already exists" }, { status: 400 });
+      return NextResponse.json(
+          { error: "User already exists" },
+          { status: 400 }
+      );
     }
 
     // 2. Password strength
@@ -30,36 +36,39 @@ export async function POST(request: Request) {
     // 4. Create patient
     await prisma.patient.create({
       data: {
-        first_name: body.firstName,
-        last_name : body.lastName,
+        first_name:        body.firstName,
+        last_name:         body.lastName,
         dob,
-        email    : body.email,
-        password : hash,
-        height   : body.height,
-        gender   : body.gender.toUpperCase(),
-        weight   : body.weight,
-        bloodType: body.bloodType,
-        allergies: body.allergies,
-        verified : false,
+        email:             body.email,
+        password:          hash,
+        height:            body.height,
+        gender:            body.gender.toUpperCase(),
+        weight:            body.weight,
+        bloodType:         body.bloodType,
+        allergies:         body.allergies,
+        verified:          false,
         verificationToken: token,
       },
     });
 
-    /* ---------- 5. Queue verification e‑mail (non‑blocking) ---------- */
+    // 5. Queue verification e-mail (non-blocking)
     setImmediate(() =>
-        sendVerificationEmail(body.email, token).catch(err =>
-            console.error("[email] failed:", err.message)
+        sendVerificationEmail(body.email, token).catch((err) =>
+            console.error("[email] patient verification failed:", err)
         )
     );
 
     // 6. Respond instantly
     return NextResponse.json(
-        { message: "Patient created; verification e‑mail queued." },
+        { message: "Patient created; verification e-mail queued." },
         { status: 201 }
     );
   } catch (err: any) {
     console.error("[patients POST] error:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+        { error: "Internal server error" },
+        { status: 500 }
+    );
   }
 }
 
@@ -67,49 +76,49 @@ export async function POST(request: Request) {
 export async function GET() {
   try {
     const patients = await prisma.patient.findMany();
-    const formatted = patients.map(p => ({
+    const formatted = patients.map((p) => ({
       ...p,
-      dob: p.dob.toISOString().split("T")[0].split("-").reverse().join("/"),
+      dob: p.dob
+          .toISOString()
+          .split("T")[0]
+          .split("-")
+          .reverse()
+          .join("/"),
     }));
     return NextResponse.json({ patients: formatted }, { status: 200 });
   } catch (err: any) {
     console.error("[patients GET] error:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+        { error: "Internal server error" },
+        { status: 500 }
+    );
   }
 }
 
-/* ----------  Helper: send verification e‑mail ---------- */
+/* ----------  Helper: send verification e-mail ---------- */
 async function sendVerificationEmail(email: string, token: string) {
-  const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false,           // STARTTLS
-    requireTLS: true,
-    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
-    connectionTimeout: 5000, // NEW: shorter time‑outs
-    socketTimeout: 4000,
-    greetingTimeout: 3000,
-  });
-
-  const base = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  const base = process.env.NEXT_PUBLIC_BASE_URL!;
   const url = `${base}/api/auth/verify-email?token=${token}`;
 
   await transporter.sendMail({
-    from   : process.env.EMAIL_USER,
-    to     : email,
+    from:    process.env.SMTP_FROM,
+    to:      email,
     subject: "Verify your MediLink account",
-    html   : `<p>Please verify your e‑mail by clicking <a href="${url}">here</a>.</p>`,
-    text   : `Please verify your account: ${url}`,
+    html:    `<p>Please verify your e-mail by clicking <a href="${url}">here</a>.</p>`,
+    text:    `Please verify your account: ${url}`,
   });
 
-  console.log("[email] verification sent →", email);
+  console.log("[email] patient verification sent →", email);
 }
 
 /* ----------  Helper: password validator ---------- */
 function validatePasswordStrength(pw: string): string | null {
   if (pw.length < 6) return "Password must be at least 6 characters long.";
-  if (!/[A-Z]/.test(pw)) return "Password must contain at least one uppercase letter.";
-  if (!/[0-9]/.test(pw)) return "Password must contain at least one number.";
-  if (!/[!@#$%^&*]/.test(pw)) return "Password must contain at least one special character (!@#$%^&*).";
+  if (!/[A-Z]/.test(pw))
+    return "Password must contain at least one uppercase letter.";
+  if (!/[0-9]/.test(pw))
+    return "Password must contain at least one number.";
+  if (!/[!@#$%^&*]/.test(pw))
+    return "Password must contain at least one special character (!@#$%^&*).";
   return null;
 }
