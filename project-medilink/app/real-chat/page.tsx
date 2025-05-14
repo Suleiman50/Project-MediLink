@@ -2,19 +2,14 @@
 
 import { useEffect, useState } from "react";
 
-// Helper to convert YYYY-MM-DD to DD/MM/YYYY
-// Updated helper function to convert an ISO date string (or any valid date string)
-// into DD/MM/YYYY format.
+/* helper: convert YYYY-MM-DD → DD/MM/YYYY */
 const convertToDDMMYYYY = (dateStr: string): string => {
   const date = new Date(dateStr);
-  if (isNaN(date.getTime())) {
-    console.warn("Invalid date string:", dateStr);
-    return "not specified";
-  }
-  const day = date.getDate().toString().padStart(2, "0");
-  const month = (date.getMonth() + 1).toString().padStart(2, "0");
-  const year = date.getFullYear().toString();
-  return `${day}/${month}/${year}`;
+  if (isNaN(date.getTime())) return "not specified";
+  const d = date.getDate().toString().padStart(2, "0");
+  const m = (date.getMonth() + 1).toString().padStart(2, "0");
+  const y = date.getFullYear().toString();
+  return `${d}/${m}/${y}`;
 };
 
 export default function RealChatPage() {
@@ -22,126 +17,111 @@ export default function RealChatPage() {
   const [input, setInput] = useState("");
   const [user, setUser] = useState<any>(null);
 
-  // Retrieve user data from localStorage on mount
+  /* load user from localStorage */
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    const stored = localStorage.getItem("user");
+    if (stored) setUser(JSON.parse(stored));
   }, []);
 
-  // Add a class to body on mount
+  /* body class */
   useEffect(() => {
     document.body.classList.add("realchatpage");
-    return () => {
-      document.body.classList.remove("realchatpage");
-    };
+    return () => document.body.classList.remove("realchatpage");
   }, []);
 
-  // Auto-scroll the entire page whenever messages update
+  /* scroll on new messages */
   useEffect(() => {
-    window.scrollTo({
-      top: document.body.scrollHeight,
-      behavior: "smooth",
-    });
+    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
+  /* delay helper */
+  const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
-  // Helper: pause for a given duration (ms)
-  const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+  /* scroll helper */
+  const autoScroll = () =>
+      window.scrollTo({ top: document.body.scrollHeight + 100, behavior: "smooth" });
 
-  // Auto-scroll helper using window (scroll a bit more past the content)
-  const autoScrollToBottom = () => {
-    window.scrollTo({
-      top: document.body.scrollHeight + 100,
-      behavior: "smooth",
-    });
-  };
-
+  /* ------------------------------ SEND ------------------------------ */
   const handleSend = async () => {
     if (!input.trim()) return;
-    const userMessage = input;
+
+    const newUserMsg = { sender: "user" as const, text: input };
+    const aiPlaceholder = { sender: "ai" as const, text: "" };
+    const newMsgs = [...messages, newUserMsg, aiPlaceholder];
+    setMessages(newMsgs);
     setInput("");
 
-    // Explicitly type the message objects so that sender is of type "user" | "ai"
-    const newUserMsg: { sender: "user"; text: string } = { sender: "user", text: userMessage };
-    const aiPlaceholder: { sender: "ai"; text: string } = { sender: "ai", text: "" };
-    const newMessages = [...messages, newUserMsg, aiPlaceholder];
-    setMessages(newMessages);
-
-    // Convert our message format to the one expected by the API:
-    // { role: "user" | "assistant", content: string }
-    const conversationForServer = newMessages.map((msg) => ({
-      role: msg.sender === "user" ? "user" : "assistant",
-      content: msg.text,
+    const convoForServer = newMsgs.map((m) => ({
+      role: m.sender === "user" ? "user" : "assistant",
+      content: m.text,
     }));
 
-    // Determine the user type. Assume that the stored user has a field "userType"
-    // If not, default to "Patient"
     const userType = user?.userType || "Patient";
 
-    // If the user is a Patient, populate the medical profile from the stored user data.
+    /* Patient medical profile (UNCHANGED) */
     const medicalProfile =
         userType.toLowerCase() === "patient"
             ? {
               weight: user.weight ? user.weight.toString() : "not specified",
               height: user.height ? user.height.toString() : "not specified",
-              // Convert stored DOB from "YYYY-MM-DD" to "DD/MM/YYYY"
               dob: user.dob ? convertToDDMMYYYY(user.dob) : "not specified",
-              gender: user.gender ? user.gender : "not specified",
-              bloodType: user.bloodType ? user.bloodType : "not specified",
-              allergies: user.allergies ? user.allergies : "not specified",
+              gender: user.gender || "not specified",
+              bloodType: user.bloodType || "not specified",
+              allergies: user.allergies || "not specified",
             }
             : {};
 
-    console.log("Medical Profile Payload:", medicalProfile);
+    /* Doctor profile (NEW) */
+    const doctorProfile =
+        userType.toLowerCase() === "doctor"
+            ? {
+              first_name: user.first_name || "not specified",
+              last_name: user.last_name || "not specified",
+              specialty: user.specialty || "not specified",
+            }
+            : {};
+
     try {
       const res = await fetch("/api/chatgpt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // Include userType and medicalProfile in the payload
         body: JSON.stringify({
           userType,
           medicalProfile,
-          messages: conversationForServer,
+          doctorProfile, // <- sent only for doctors
+          messages: convoForServer,
         }),
       });
 
-      if (!res.ok) {
-        throw new Error("API request failed");
-      }
+      if (!res.ok) throw new Error("API request failed");
       const data = await res.json();
-      const fullResponse: string = data.text;
+      const full = data.text as string;
 
-      // Animate the AI response text letter-by-letter
-      let currentText = "";
-      const typingInterval = 20; // milliseconds between letters
-      for (let i = 0; i < fullResponse.length; i++) {
-        currentText += fullResponse[i];
-        // Update only the last message (the AI placeholder)
+      let cur = "";
+      for (let i = 0; i < full.length; i++) {
+        cur += full[i];
         setMessages((prev) => {
-          const updated = [...prev];
-          updated[updated.length - 1] = { sender: "ai", text: currentText };
-          return updated;
+          const up = [...prev];
+          up[up.length - 1] = { sender: "ai", text: cur };
+          return up;
         });
-        autoScrollToBottom();
-        await delay(typingInterval);
+        autoScroll();
+        await delay(20);
       }
-    } catch (error) {
-      console.error("Error fetching AI response:", error);
-      // Update the AI message with an error message
+    } catch (err) {
+      console.error("AI error:", err);
       setMessages((prev) => {
-        const updated = [...prev];
-        updated[updated.length - 1] = {
+        const up = [...prev];
+        up[up.length - 1] = {
           sender: "ai",
-          text: "Sorry, there was an error retrieving the response. Please try again later.",
+          text: "Sorry, there was an error retrieving the response.",
         };
-        return updated;
+        return up;
       });
     }
   };
 
-  // Suggestion box data
+  /* --- suggestion buttons (unchanged) --- */
   const suggestions = [
     { text: "Find the nearest available doctor for my symptoms" },
     { text: "Get emergency medical advice for current condition" },
@@ -152,7 +132,8 @@ export default function RealChatPage() {
   return (
       <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50">
         <main className="max-w-4xl mx-auto px-4 py-24 relative">
-          {/* Welcome Message */}
+
+          {/* welcome */}
           {messages.length === 0 && (
               <div className="text-center mb-16">
                 <h1 className="text-5xl font-semibold mb-3 text-gray-800">
@@ -161,28 +142,21 @@ export default function RealChatPage() {
               </div>
           )}
 
-          {/* Suggestion Boxes */}
+          {/* suggestions */}
           {messages.length === 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-                {suggestions.map((suggestion, index) => (
+                {suggestions.map((s, i) => (
                     <button
-                        key={index}
+                        key={i}
                         onClick={() => {
-                          setInput(suggestion.text);
+                          setInput(s.text);
                           handleSend();
                         }}
                         className="p-6 bg-white rounded-[30px] text-left group relative hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#00BCD4]/20 hover:bg-gray-50"
                     >
-                <span className="text-lg text-gray-700 font-medium block">
-                  {suggestion.text}
-                </span>
+                      <span className="text-lg text-gray-700 font-medium block">{s.text}</span>
                       <div className="absolute right-6 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <svg
-                            className="w-6 h-6 text-[#00BCD4]"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
+                        <svg className="w-6 h-6 text-[#00BCD4]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
                       </div>
@@ -191,34 +165,29 @@ export default function RealChatPage() {
               </div>
           )}
 
-          {/* Chat Messages (now part of the main scrolling page) */}
+          {/* messages */}
           <div className="space-y-6 mb-32">
-            {messages.map((msg, index) => (
-                <div key={index} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
+            {messages.map((m, i) => (
+                <div key={i} className={`flex ${m.sender === "user" ? "justify-end" : "justify-start"}`}>
                   <div
                       className={`max-w-[80%] p-4 rounded-[20px] shadow-sm ${
-                          msg.sender === "user"
+                          m.sender === "user"
                               ? "bg-[#00BCD4] text-white font-medium"
                               : "bg-white text-gray-800 border border-gray-100"
                       }`}
                   >
-                    <p className="whitespace-pre-line">{msg.text}</p>
+                    <p className="whitespace-pre-line">{m.text}</p>
                   </div>
                 </div>
             ))}
           </div>
 
-          {/* Input Bar */}
+          {/* input bar */}
           <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100">
             <div className="max-w-4xl mx-auto">
               <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-[20px] border border-gray-100">
                 <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-                  <svg
-                      className="w-6 h-6 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                  >
+                  <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                   </svg>
                 </button>
@@ -228,14 +197,14 @@ export default function RealChatPage() {
                     placeholder="Ask MedAI about your health concerns..."
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    onKeyPress={(e) => e.key === "Enter" && handleSend()}
+                    onKeyDown={(e) => e.key === "Enter" && handleSend()}
                 />
                 <button
                     onClick={handleSend}
                     className="p-2 text-white bg-[#00BCD4] rounded-full hover:bg-[#00BCD4]/90 transition-colors"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7-7 7m7-7H3" />
                   </svg>
                 </button>
               </div>
