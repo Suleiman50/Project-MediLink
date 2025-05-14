@@ -1,17 +1,34 @@
 import { NextResponse, NextRequest } from 'next/server';
 import OpenAI from 'openai';
+import { PrismaClient } from '@prisma/client';
+import jwt from 'jsonwebtoken';
 
-/*────────────────────────  helper  ────────────────────────*/
-function getProfileField(field: string | undefined): string {
+const prisma = new PrismaClient();
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_here';
+
+/*──────────────────────── helper ────────────────────────*/
+function getProfileField(field: string | undefined | null): string {
   return field && field.trim() !== '' ? field : 'not specified';
 }
 
-/*───────────────────────  handler  ────────────────────────*/
+/*────────────────────── handler ─────────────────────────*/
 export async function POST(request: NextRequest) {
   try {
-    /* Parse incoming JSON */
+    /* 0️⃣  Decode JWT (if provided) */
+    const auth = request.headers.get('authorization') || '';
+    const token = auth.startsWith('Bearer ') ? auth.split(' ')[1] : null;
+    let decoded: any = {};
+    if (token) {
+      try {
+        decoded = jwt.verify(token, JWT_SECRET);
+      } catch {
+        decoded = {};
+      }
+    }
+
+    /* Body */
     const payload = await request.json();
-    const { messages, userType, medicalProfile, doctorProfile } = payload;
+    const { messages, userType: bodyUserType, medicalProfile } = payload;
 
     if (!messages || !Array.isArray(messages)) {
       return NextResponse.json(
@@ -20,10 +37,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    /* final userType preference: JWT > body */
+    const userType = decoded.userType || bodyUserType;
+
     /*────────────── 1️⃣ Build the system prompt ─────────────*/
     let systemMessage = '';
 
-    /* ——— PATIENT branch (unchanged) ——— */
+    /* ——— PATIENT branch (UNCHANGED) ——— */
     if (userType && userType.toLowerCase() === 'patient') {
       systemMessage =
           'You are a virtual medical diagnosing assistant for a site named "MediLink" you can call yourself MediLink\'s AI Assistant or something like that. Your responsibilities:\n' +
@@ -64,18 +84,26 @@ export async function POST(request: NextRequest) {
 - Blood Type: ${bloodType}
 - Allergies: ${allergies}`;
 
-      /* ——— DOCTOR branch (new) ——— */
+      /* ——— DOCTOR branch (NEW) ——— */
     } else if (userType && userType.toLowerCase() === 'doctor') {
-      const docFirst = getProfileField(doctorProfile?.first_name);
-      const docLast  = getProfileField(doctorProfile?.last_name);
-      const spec     = getProfileField(doctorProfile?.specialty);
+      /* Fetch doctor profile from DB using id in JWT */
+      const doctorId = decoded.id;
+      const doctor =
+          doctorId
+              ? await prisma.doctor.findUnique({ where: { id: doctorId } })
+              : null;
+
+      const docFirst = getProfileField(doctor?.first_name);
+      const docLast  = getProfileField(doctor?.last_name);
+      const spec     = getProfileField(doctor?.specialty);
 
       systemMessage =
           `You are MediLink’s AI clinical assistant speaking **to** Dr. ${docFirst} ${docLast}, a specialist in **${spec}**.\n` +
           `• Always address the user as **Dr. ${docFirst}**.\n` +
           `• You may use advanced medical terminology—the doctor will understand it.\n` +
           `• Mission: assist Dr. ${docFirst} with evidence-based guidance, differential diagnoses, treatment options, or clinical questions they raise.\n` +
-          `• Keep responses concise, reference up-to-date guidelines where relevant, and avoid explaining basic concepts unless asked.`;
+          `• Keep responses concise, cite current guidelines when relevant, and avoid explaining basic concepts unless asked.\n` +
+          `• End each reply with: “Let me know if you need further details, Dr. ${docFirst}.”`;
 
       /* ——— Unknown / default branch ——— */
     } else {
@@ -83,26 +111,21 @@ export async function POST(request: NextRequest) {
           'You are MediLink’s AI assistant. Politely ask whether the user is a patient or a doctor so you can tailor your help.';
     }
 
-    /*────────────── 2️⃣ Build final conversation array ───────*/
-    const conversation = [
-      { role: 'system', content: systemMessage },
-      ...messages
-    ];
+    /*────────────── 2️⃣ Build conversation & call OpenAI ─────*/
+    const conversation = [{ role: 'system', content: systemMessage }, ...messages];
 
-    /*────────────── 3️⃣ Call OpenAI ————————————————*/
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4.1',  // or 'gpt-4.1'
+    const resp = await openai.chat.completions.create({
+      model: 'gpt-4.1',
       messages: conversation
     });
 
-    const completion = response.choices[0]?.message?.content;
-    return NextResponse.json({ text: completion });
+    return NextResponse.json({ text: resp.choices[0].message?.content });
 
-  } catch (error: any) {
-    console.error('OpenAI API error:', error);
+  } catch (err: any) {
+    console.error('OpenAI API error:', err);
     return NextResponse.json(
-        { error: error.message || 'Something went wrong' },
+        { error: err.message || 'Something went wrong' },
         { status: 500 }
     );
   }
