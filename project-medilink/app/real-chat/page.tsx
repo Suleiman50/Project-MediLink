@@ -72,12 +72,14 @@ export default function RealChatPage() {
             : {};
 
     /* Doctor profile (NEW) */
+    // ▼ replace this block ONLY
     const doctorProfile =
         userType.toLowerCase() === "doctor"
             ? {
-              first_name: user.first_name || "not specified",
-              last_name: user.last_name || "not specified",
-              specialty: user.specialty || "not specified",
+              // accept both shapes (firstName / first_name)
+              first_name: user.first_name ?? user.firstName ?? "not specified",
+              last_name:  user.last_name  ?? user.lastName  ?? "not specified",
+              specialty:  user.specialty  ?? "not specified",
             }
             : {};
 

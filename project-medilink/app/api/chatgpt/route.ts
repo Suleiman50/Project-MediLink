@@ -101,11 +101,17 @@ export async function POST(request: NextRequest) {
               ? await prisma.doctor.findUnique({ where: { id: decoded.id } })
               : null;
 
+      /* inside the DOCTOR branch */
       const docFirst = getProfileField(
-          doctorProfile?.first_name ?? dbDoc?.first_name
+          doctorProfile?.first_name
+          ?? (doctorProfile as any)?.firstName   // camel-case fallback
+          ?? dbDoc?.first_name
       );
-      const docLast = getProfileField(
-          doctorProfile?.last_name ?? dbDoc?.last_name
+
+      const docLast  = getProfileField(
+          doctorProfile?.last_name
+          ?? (doctorProfile as any)?.lastName    // camel-case fallback
+          ?? dbDoc?.last_name
       );
       const spec = getProfileField(doctorProfile?.specialty ?? dbDoc?.specialty);
 
